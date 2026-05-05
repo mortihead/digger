@@ -1,50 +1,55 @@
 package org.digger.app;
 
+/**
+ * Sprite engine: manages up to 16 sprites with collision detection,
+ * save/restore background, and draw ordering.
+ *
+ * <p>Sprites 0-7 are bags, 8-13 are monsters, 14 is bonus, 15 is fire,
+ * 0 is also the digger. Slot 16 is used as a temporary for misc sprites.
+ */
 class Sprite {
 
     Digger dig;
 
     boolean retrflag = true;
 
-    boolean sprrdrwf[] = {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};    // [17]
-    boolean sprrecf[] = {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};    // [17]
-    boolean sprenf[] = {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,};    // [16]
+    boolean[] sprDrawFlag = new boolean[17];
+    boolean[] sprRecFlag = new boolean[17];
+    boolean[] sprEnabled = new boolean[16];
 
-    int sprch[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};    // [17]
+    int[] sprChar = new int[17];
+    short[][] sprBackground = new short[16][];
+    int[] sprX = new int[17];
+    int[] sprY = new int[17];
+    int[] sprWidth = new int[17];
+    int[] sprHeight = new int[17];
+    int[] sprBWidth = new int[16];
+    int[] sprBHeight = new int[16];
+    int[] sprNewChar = new int[16];
+    int[] sprNewWidth = new int[16];
+    int[] sprNewHeight = new int[16];
+    int[] sprNewBWidth = new int[16];
+    int[] sprNewBHeight = new int[16];
 
-    short sprmov[][] = {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null};    // [16]
-
-    int sprx[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};    // [17]
-    int spry[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};    // [17]
-    int sprwid[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};    // [17]
-    int sprhei[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};    // [17]
-    int sprbwid[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};    // [16]
-    int sprbhei[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};    // [16]
-    int sprnch[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};    // [16]
-    int sprnwid[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};    // [16]
-    int sprnhei[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};    // [16]
-    int sprnbwid[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};    // [16]
-    int sprnbhei[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};    // [16]
-
-    int defsprorder[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};    // [16]
-    int sprorder[] = defsprorder;
+    int[] defaultSprOrder = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+    int[] sprOrder = defaultSprOrder;
 
     Sprite(Digger d) {
         dig = d;
     }
 
     boolean bcollide(int bx, int si) {
-        if (sprx[bx] >= sprx[si]) {
-            if (sprx[bx] + sprbwid[bx] > sprwid[si] * 4 + sprx[si] - sprbwid[si] - 1)
+        if (sprX[bx] >= sprX[si]) {
+            if (sprX[bx] + sprBWidth[bx] > sprWidth[si] * 4 + sprX[si] - sprBWidth[si] - 1)
                 return false;
-        } else if (sprx[si] + sprbwid[si] > sprwid[bx] * 4 + sprx[bx] - sprbwid[bx] - 1)
+        } else if (sprX[si] + sprBWidth[si] > sprWidth[bx] * 4 + sprX[bx] - sprBWidth[bx] - 1)
             return false;
-        if (spry[bx] >= spry[si]) {
-            if (spry[bx] + sprbhei[bx] <= sprhei[si] + spry[si] - sprbhei[si] - 1)
+        if (sprY[bx] >= sprY[si]) {
+            if (sprY[bx] + sprBHeight[bx] <= sprHeight[si] + sprY[si] - sprBHeight[si] - 1)
                 return true;
             return false;
         }
-        if (spry[si] + sprbhei[si] <= sprhei[bx] + spry[bx] - sprbhei[bx] - 1)
+        if (sprY[si] + sprBHeight[si] <= sprHeight[bx] + sprY[bx] - sprBHeight[bx] - 1)
             return true;
         return false;
     }
@@ -53,19 +58,19 @@ class Sprite {
         int si = bx, ax = 0, dx = 0;
         bx = 0;
         do {
-            if (sprenf[bx] && bx != si) {
+            if (sprEnabled[bx] && bx != si) {
                 if (bcollide(bx, si))
                     ax |= 1 << dx;
-                sprx[bx] += 320;
-                spry[bx] -= 2;
+                sprX[bx] += 320;
+                sprY[bx] -= 2;
                 if (bcollide(bx, si))
                     ax |= 1 << dx;
-                sprx[bx] -= 640;
-                spry[bx] += 4;
+                sprX[bx] -= 640;
+                sprY[bx] += 4;
                 if (bcollide(bx, si))
                     ax |= 1 << dx;
-                sprx[bx] += 320;
-                spry[bx] -= 2;
+                sprX[bx] += 320;
+                sprY[bx] -= 2;
             }
             bx++;
             dx++;
@@ -73,182 +78,178 @@ class Sprite {
         return ax;
     }
 
-    void clearrdrwf() {
-        int i;
-        clearrecf();
-        for (i = 0; i < 17; i++)
-            sprrdrwf[i] = false;
+    void clearDrawFlags() {
+        clearRecFlags();
+        for (int i = 0; i < 17; i++)
+            sprDrawFlag[i] = false;
     }
 
-    void clearrecf() {
-        int i;
-        for (i = 0; i < 17; i++)
-            sprrecf[i] = false;
+    void clearRecFlags() {
+        for (int i = 0; i < 17; i++)
+            sprRecFlag[i] = false;
     }
 
     boolean collide(int bx, int si) {
-        if (sprx[bx] >= sprx[si]) {
-            if (sprx[bx] > sprwid[si] * 4 + sprx[si] - 1)
+        if (sprX[bx] >= sprX[si]) {
+            if (sprX[bx] > sprWidth[si] * 4 + sprX[si] - 1)
                 return false;
-        } else if (sprx[si] > sprwid[bx] * 4 + sprx[bx] - 1)
+        } else if (sprX[si] > sprWidth[bx] * 4 + sprX[bx] - 1)
             return false;
-        if (spry[bx] >= spry[si]) {
-            if (spry[bx] <= sprhei[si] + spry[si] - 1)
+        if (sprY[bx] >= sprY[si]) {
+            if (sprY[bx] <= sprHeight[si] + sprY[si] - 1)
                 return true;
             return false;
         }
-        if (spry[si] <= sprhei[bx] + spry[bx] - 1)
+        if (sprY[si] <= sprHeight[bx] + sprY[bx] - 1)
             return true;
         return false;
     }
 
     void createspr(int n, int ch, short[] mov, int wid, int hei, int bwid, int bhei) {
-        sprnch[n & 15] = sprch[n & 15] = ch;
-        sprmov[n & 15] = mov;
-        sprnwid[n & 15] = sprwid[n & 15] = wid;
-        sprnhei[n & 15] = sprhei[n & 15] = hei;
-        sprnbwid[n & 15] = sprbwid[n & 15] = bwid;
-        sprnbhei[n & 15] = sprbhei[n & 15] = bhei;
-        sprenf[n & 15] = false;
+        sprNewChar[n & 15] = sprChar[n & 15] = ch;
+        sprBackground[n & 15] = mov;
+        sprNewWidth[n & 15] = sprWidth[n & 15] = wid;
+        sprNewHeight[n & 15] = sprHeight[n & 15] = hei;
+        sprNewBWidth[n & 15] = sprBWidth[n & 15] = bwid;
+        sprNewBHeight[n & 15] = sprBHeight[n & 15] = bhei;
+        sprEnabled[n & 15] = false;
     }
 
     void drawmiscspr(int x, int y, int ch, int wid, int hei) {
-        sprx[16] = x & -4;
-        spry[16] = y;
-        sprch[16] = ch;
-        sprwid[16] = wid;
-        sprhei[16] = hei;
-        dig.pc.gputim(sprx[16], spry[16], sprch[16], sprwid[16], sprhei[16]);
+        sprX[16] = x & -4;
+        sprY[16] = y;
+        sprChar[16] = ch;
+        sprWidth[16] = wid;
+        sprHeight[16] = hei;
+        dig.display.drawSpriteMasked(sprX[16], sprY[16], sprChar[16], sprWidth[16], sprHeight[16]);
     }
 
     int drawspr(int n, int x, int y) {
         int bx, t1, t2, t3, t4;
         bx = n & 15;
         x &= -4;
-        clearrdrwf();
-        setrdrwflgs(bx);
-        t1 = sprx[bx];
-        t2 = spry[bx];
-        t3 = sprwid[bx];
-        t4 = sprhei[bx];
-        sprx[bx] = x;
-        spry[bx] = y;
-        sprwid[bx] = sprnwid[bx];
-        sprhei[bx] = sprnhei[bx];
-        clearrecf();
-        setrdrwflgs(bx);
-        sprhei[bx] = t4;
-        sprwid[bx] = t3;
-        spry[bx] = t2;
-        sprx[bx] = t1;
-        sprrdrwf[bx] = true;
-        putis();
-        sprx[bx] = x;
-        spry[bx] = y;
-        sprch[bx] = sprnch[bx];
-        sprwid[bx] = sprnwid[bx];
-        sprhei[bx] = sprnhei[bx];
-        sprbwid[bx] = sprnbwid[bx];
-        sprbhei[bx] = sprnbhei[bx];
-        dig.pc.ggeti(sprx[bx], spry[bx], sprmov[bx], sprwid[bx], sprhei[bx]);
-        putims();
+        clearDrawFlags();
+        setRedrawFlags(bx);
+        t1 = sprX[bx];
+        t2 = sprY[bx];
+        t3 = sprWidth[bx];
+        t4 = sprHeight[bx];
+        sprX[bx] = x;
+        sprY[bx] = y;
+        sprWidth[bx] = sprNewWidth[bx];
+        sprHeight[bx] = sprNewHeight[bx];
+        clearRecFlags();
+        setRedrawFlags(bx);
+        sprHeight[bx] = t4;
+        sprWidth[bx] = t3;
+        sprY[bx] = t2;
+        sprX[bx] = t1;
+        sprDrawFlag[bx] = true;
+        restoreBackgrounds();
+        sprX[bx] = x;
+        sprY[bx] = y;
+        sprChar[bx] = sprNewChar[bx];
+        sprWidth[bx] = sprNewWidth[bx];
+        sprHeight[bx] = sprNewHeight[bx];
+        sprBWidth[bx] = sprNewBWidth[bx];
+        sprBHeight[bx] = sprNewBHeight[bx];
+        dig.display.readSpritePixels(sprX[bx], sprY[bx], sprBackground[bx], sprWidth[bx], sprHeight[bx]);
+        drawMaskedSprites();
         return bcollides(bx);
     }
 
     void erasespr(int n) {
         int bx = n & 15;
-        dig.pc.gputi(sprx[bx], spry[bx], sprmov[bx], sprwid[bx], sprhei[bx], true);
-        sprenf[bx] = false;
-        clearrdrwf();
-        setrdrwflgs(bx);
-        putims();
+        dig.display.drawSprite(sprX[bx], sprY[bx], sprBackground[bx], sprWidth[bx], sprHeight[bx], true);
+        sprEnabled[bx] = false;
+        clearDrawFlags();
+        setRedrawFlags(bx);
+        drawMaskedSprites();
     }
 
     void getis() {
-        int i;
-        for (i = 0; i < 16; i++)
-            if (sprrdrwf[i])
-                dig.pc.ggeti(sprx[i], spry[i], sprmov[i], sprwid[i], sprhei[i]);
-        putims();
+        for (int i = 0; i < 16; i++)
+            if (sprDrawFlag[i])
+                dig.display.readSpritePixels(sprX[i], sprY[i], sprBackground[i], sprWidth[i], sprHeight[i]);
+        drawMaskedSprites();
     }
 
     void initmiscspr(int x, int y, int wid, int hei) {
-        sprx[16] = x;
-        spry[16] = y;
-        sprwid[16] = wid;
-        sprhei[16] = hei;
-        clearrdrwf();
-        setrdrwflgs(16);
-        putis();
+        sprX[16] = x;
+        sprY[16] = y;
+        sprWidth[16] = wid;
+        sprHeight[16] = hei;
+        clearDrawFlags();
+        setRedrawFlags(16);
+        restoreBackgrounds();
     }
 
     void initspr(int n, int ch, int wid, int hei, int bwid, int bhei) {
-        sprnch[n & 15] = ch;
-        sprnwid[n & 15] = wid;
-        sprnhei[n & 15] = hei;
-        sprnbwid[n & 15] = bwid;
-        sprnbhei[n & 15] = bhei;
+        sprNewChar[n & 15] = ch;
+        sprNewWidth[n & 15] = wid;
+        sprNewHeight[n & 15] = hei;
+        sprNewBWidth[n & 15] = bwid;
+        sprNewBHeight[n & 15] = bhei;
     }
 
     int movedrawspr(int n, int x, int y) {
         int bx = n & 15;
-        sprx[bx] = x & -4;
-        spry[bx] = y;
-        sprch[bx] = sprnch[bx];
-        sprwid[bx] = sprnwid[bx];
-        sprhei[bx] = sprnhei[bx];
-        sprbwid[bx] = sprnbwid[bx];
-        sprbhei[bx] = sprnbhei[bx];
-        clearrdrwf();
-        setrdrwflgs(bx);
-        putis();
-        dig.pc.ggeti(sprx[bx], spry[bx], sprmov[bx], sprwid[bx], sprhei[bx]);
-        sprenf[bx] = true;
-        sprrdrwf[bx] = true;
-        putims();
+        sprX[bx] = x & -4;
+        sprY[bx] = y;
+        sprChar[bx] = sprNewChar[bx];
+        sprWidth[bx] = sprNewWidth[bx];
+        sprHeight[bx] = sprNewHeight[bx];
+        sprBWidth[bx] = sprNewBWidth[bx];
+        sprBHeight[bx] = sprNewBHeight[bx];
+        clearDrawFlags();
+        setRedrawFlags(bx);
+        restoreBackgrounds();
+        dig.display.readSpritePixels(sprX[bx], sprY[bx], sprBackground[bx], sprWidth[bx], sprHeight[bx]);
+        sprEnabled[bx] = true;
+        sprDrawFlag[bx] = true;
+        drawMaskedSprites();
         return bcollides(bx);
     }
 
-    void putims() {
-        int i, j;
-        for (i = 0; i < 16; i++) {
-            j = sprorder[i];
-            if (sprrdrwf[j])
-                dig.pc.gputim(sprx[j], spry[j], sprch[j], sprwid[j], sprhei[j]);
+    /** Draws all flagged sprites using their masks (transparent backgrounds). */
+    private void drawMaskedSprites() {
+        for (int i = 0; i < 16; i++) {
+            int j = sprOrder[i];
+            if (sprDrawFlag[j])
+                dig.display.drawSpriteMasked(sprX[j], sprY[j], sprChar[j], sprWidth[j], sprHeight[j]);
         }
     }
 
-    void putis() {
-        int i;
-        for (i = 0; i < 16; i++)
-            if (sprrdrwf[i])
-                dig.pc.gputi(sprx[i], spry[i], sprmov[i], sprwid[i], sprhei[i]);
+    /** Restores background for all flagged sprites (non-masked overwrite). */
+    private void restoreBackgrounds() {
+        for (int i = 0; i < 16; i++)
+            if (sprDrawFlag[i])
+                dig.display.drawSprite(sprX[i], sprY[i], sprBackground[i], sprWidth[i], sprHeight[i]);
     }
 
-    void setrdrwflgs(int n) {
-        int i;
-        if (!sprrecf[n]) {
-            sprrecf[n] = true;
-            for (i = 0; i < 16; i++)
-                if (sprenf[i] && i != n) {
+    void setRedrawFlags(int n) {
+        if (!sprRecFlag[n]) {
+            sprRecFlag[n] = true;
+            for (int i = 0; i < 16; i++)
+                if (sprEnabled[i] && i != n) {
                     if (collide(i, n)) {
-                        sprrdrwf[i] = true;
-                        setrdrwflgs(i);
+                        sprDrawFlag[i] = true;
+                        setRedrawFlags(i);
                     }
-                    sprx[i] += 320;
-                    spry[i] -= 2;
+                    sprX[i] += 320;
+                    sprY[i] -= 2;
                     if (collide(i, n)) {
-                        sprrdrwf[i] = true;
-                        setrdrwflgs(i);
+                        sprDrawFlag[i] = true;
+                        setRedrawFlags(i);
                     }
-                    sprx[i] -= 640;
-                    spry[i] += 4;
+                    sprX[i] -= 640;
+                    sprY[i] += 4;
                     if (collide(i, n)) {
-                        sprrdrwf[i] = true;
-                        setrdrwflgs(i);
+                        sprDrawFlag[i] = true;
+                        setRedrawFlags(i);
                     }
-                    sprx[i] += 320;
-                    spry[i] -= 2;
+                    sprX[i] += 320;
+                    sprY[i] -= 2;
                 }
         }
     }
@@ -259,8 +260,8 @@ class Sprite {
 
     void setsprorder(int[] newsprorder) {
         if (newsprorder == null)
-            sprorder = defsprorder;
+            sprOrder = defaultSprOrder;
         else
-            sprorder = newsprorder;
+            sprOrder = newsprorder;
     }
 }

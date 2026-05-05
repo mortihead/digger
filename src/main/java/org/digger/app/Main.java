@@ -199,13 +199,13 @@ class Main {
         int frame, t, x = 0;
         boolean start;
 
-        randSeed = (int) dig.pc.gethrt();
+            dig.time = dig.display.getCurrentTimeMillis();
         calibrate();
         dig.ftime = speedMul * 2000L;
         dig.sprite.setretr(false);
-        dig.pc.ginit();
+        dig.display.init();
         dig.sprite.setretr(true);
-        dig.pc.gpal(0);
+        dig.display.setPalette(0);
         dig.input.initkeyb();
         dig.input.detectjoy();
         dig.scores.loadscores();
@@ -220,15 +220,15 @@ class Main {
             dig.sprite.setsprorder(digSprOrder);
             dig.drawing.createAllSprites();
             dig.input.detectjoy();
-            dig.pc.gclear();
-            dig.pc.gtitle();
+dig.display.clearScreen();
+            dig.display.drawTitleScreen();
             dig.drawing.drawText("D I G G E R", 100, 0, 3);
             shownplayers();
             dig.scores.showtable();
             start = false;
             frame = 0;
 
-            dig.time = dig.pc.gethrt();
+            dig.time = dig.display.getCurrentTimeMillis();
 
             while (!start) {
                 start = dig.input.teststart();
@@ -315,7 +315,7 @@ class Main {
                 gameData[1].lives = 3;
             } else
                 gameData[1].lives = 0;
-            dig.pc.gclear();
+dig.display.clearScreen();
             currentPlayer = 0;
             initlevel();
             currentPlayer = 1;
@@ -346,7 +346,7 @@ class Main {
         if (levelNotDrawn) {
             levelNotDrawn = false;
             drawscreen();
-            dig.time = dig.pc.gethrt();
+            dig.time = dig.display.getCurrentTimeMillis();
             if (flashPlayer) {
                 flashPlayer = false;
                 playerDisplayBuffer = "PLAYER ";
@@ -371,7 +371,7 @@ class Main {
         dig.drawing.drawLives();
         dig.sound.music(1);
         dig.input.readdir();
-        dig.time = dig.pc.gethrt();
+            dig.time = dig.display.getCurrentTimeMillis();
         while (!gameData[currentPlayer].dead && !gameData[currentPlayer].levelDone && !dig.input.escape) {
             penalty = 0;
             dig.dodigger();
@@ -471,7 +471,7 @@ class Main {
             dig.scores.addscore(0);
             dig.drawing.drawLives();
             dig.newframe();
-            dig.time = dig.pc.gethrt() - dig.frametime;
+            dig.time = dig.display.getCurrentTimeMillis() - dig.frametime;
             dig.input.keypressed = 0;
         } else
             dig.sound.soundpauseoff();

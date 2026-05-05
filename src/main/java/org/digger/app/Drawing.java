@@ -371,11 +371,11 @@ class Drawing {
                 else
                     field[y * FIELD_WIDTH + x] = field2[y * FIELD_WIDTH + x];
         dig.sprite.setretr(true);
-        dig.pc.gpal(0);
-        dig.pc.ginten(0);
+        dig.display.setPalette(0);
+        dig.display.setIntensity(0);
         drawBackground(dig.main.levplan());
         drawField();
-        dig.pc.currentSource.newPixels(0, 0, dig.pc.width, dig.pc.height);
+        dig.display.currentSource.newPixels(0, 0, dig.display.width, dig.display.height);
     }
 
     /**
@@ -514,11 +514,11 @@ class Drawing {
     void drawText(String text, int x, int y, int color, boolean refresh) {
         int rx = x;
         for (int i = 0; i < text.length(); i++) {
-            dig.pc.gwrite(x, y, text.charAt(i), color);
+            dig.display.drawChar(x, y, text.charAt(i), color);
             x += 12;
         }
         if (refresh)
-            dig.pc.currentSource.newPixels(rx, y, text.length() * 12, 12);
+            dig.display.currentSource.newPixels(rx, y, text.length() * 12, 12);
     }
 
     /**

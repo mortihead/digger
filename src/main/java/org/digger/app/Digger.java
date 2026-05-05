@@ -15,16 +15,23 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Main game class: manages the game loop, digger logic, fire, bonus mode,
+ * emerald field, and the AWT window with CGA display output.
+ */
 public class Digger extends Frame implements Runnable {
+
     private static final String INI_FILE = "digger.ini";
+
     private final Map<String, String> parameters;
+
     public boolean running;
 
     static int MAX_RATE = 200, MIN_RATE = 40;
 
     int width = 320, height = 200, frametime = 66;
     int scaleFactor = 2;
-    int top_indent = 30;
+    int topIndent = 30;
     Thread gamethread;
 
     Bags bags;
@@ -35,9 +42,9 @@ public class Digger extends Frame implements Runnable {
     Sprite sprite;
     Drawing drawing;
     Input input;
-    Pc pc;
+    CgaDisplay display;
 
-// -----
+    // ----- Digger state -----
 
     int diggerx = 0, diggery = 0, diggerh = 0, diggerv = 0, diggerrx = 0, diggerry = 0, digmdir = 0,
             digdir = 0, digtime = 0, rechargetime = 0, firex = 0, firey = 0, firedir = 0, expsn = 0,
@@ -46,23 +53,16 @@ public class Digger extends Frame implements Runnable {
 
     int emmask = 0;
 
-    byte emfield[] = {    //[150]
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    byte[] emfield = new byte[150];
 
     boolean digonscr = false, notfiring = false, bonusvisible = false, bonusmode = false, diggervisible = false;
 
     long time, ftime = 50;
-    int embox[] = {8, 12, 12, 9, 16, 12, 6, 9};    // [8]
-    int deatharc[] = {3, 5, 6, 6, 5, 3, 0};            // [7]
+
+    /** Hit-box offsets for emerald collection per direction. */
+    int[] embox = {8, 12, 12, 9, 16, 12, 6, 9};
+    /** Arc heights for digger death animation (stage 5). */
+    int[] deatharc = {3, 5, 6, 6, 5, 3, 0};
 
     public Digger() throws IOException {
         setTitle("Digger Game");
@@ -71,7 +71,7 @@ public class Digger extends Frame implements Runnable {
         this.parameters = new HashMap<>();
         loadParameters(INI_FILE);
         scaleFactor = Integer.parseInt(getParameter("scale_factor", "2"));
-        setSize(width * scaleFactor, height * scaleFactor + top_indent);
+        setSize(width * scaleFactor, height * scaleFactor + topIndent);
 
         bags = new Bags(this);
         main = new Main(this);
@@ -81,12 +81,13 @@ public class Digger extends Frame implements Runnable {
         sprite = new Sprite(this);
         drawing = new Drawing(this);
         input = new Input(this);
-        pc = new Pc(this);
+        display = new CgaDisplay(this);
         init();
 
         setVisible(true);
         requestFocus();
-        running = true; // Устанавливаем флаг выполнения
+        running = true;
+
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent we) {
@@ -102,7 +103,6 @@ public class Digger extends Frame implements Runnable {
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                // Обработка нажатия клавиши
                 keyDownProcess(e);
             }
 
@@ -113,15 +113,11 @@ public class Digger extends Frame implements Runnable {
 
             @Override
             public void keyTyped(KeyEvent e) {
-                // Обработка нажатия клавиши (с учетом символа)
-
             }
         });
     }
 
-
     public static void main(String[] args) {
-        // Запуск приложения
         javax.swing.SwingUtilities.invokeLater(() -> {
             Digger app = null;
             try {
@@ -135,39 +131,20 @@ public class Digger extends Frame implements Runnable {
 
     private void loadParameters(String filePath) throws IOException {
         File file = new File(filePath);
-
-        // Проверяем существование файла
-        if (!file.exists()) {
-            System.err.println("Warning: Configuration file not found: " + filePath);
-            System.err.println("Warning: Using default parameters");
-            return; // Просто выходим, не загружая параметры
-        }
-
-        // Проверяем, что это файл, а не директория
-        if (!file.isFile()) {
-            System.err.println("Warning: Path is not a file: " + filePath);
-            return;
-        }
-
-        // Проверяем, что файл можно читать
-        if (!file.canRead()) {
-            System.err.println("Warning: Cannot read configuration file: " + filePath);
+        if (!file.exists() || !file.isFile() || !file.canRead()) {
+            if (!file.exists())
+                System.err.println("Warning: Configuration file not found: " + filePath);
             return;
         }
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
-                // Пропускаем пустые строки и комментарии
-                if (line.isEmpty() || line.startsWith(";") || line.startsWith("#")) {
+                if (line.isEmpty() || line.startsWith(";") || line.startsWith("#"))
                     continue;
-                }
-                // Разделяем строку на ключ и значение
                 String[] parts = line.split("=", 2);
                 if (parts.length == 2) {
-                    String key = parts[0].trim();
-                    String value = parts[1].trim();
-                    parameters.put(key, value);
+                    parameters.put(parts[0].trim(), parts[1].trim());
                 }
             }
         }
@@ -182,7 +159,6 @@ public class Digger extends Frame implements Runnable {
         return (Objects.isNull(res) ? defaultValue : res);
     }
 
-
     boolean checkdiggerunderbag(int h, int v) {
         if (digmdir == 2 || digmdir == 6)
             if ((diggerx - 12) / 20 == h)
@@ -192,9 +168,9 @@ public class Digger extends Frame implements Runnable {
     }
 
     int countem() {
-        int x, y, n = 0;
-        for (x = 0; x < 15; x++)
-            for (y = 0; y < 10; y++)
+        int n = 0;
+        for (int x = 0; x < 15; x++)
+            for (int y = 0; y < 10; y++)
                 if ((emfield[y * 15 + x] & emmask) != 0)
                     n++;
         return n;
@@ -202,7 +178,7 @@ public class Digger extends Frame implements Runnable {
 
     void createbonus() {
         bonusvisible = true;
-drawing.drawBonus(292, 18);
+        drawing.drawBonus(292, 18);
     }
 
     public void destroy() {
@@ -299,16 +275,16 @@ drawing.drawBonus(292, 18);
                 if (startbonustimeleft != 0 || bonustimeleft < 20) {
                     startbonustimeleft--;
                     if ((bonustimeleft & 1) != 0) {
-                        pc.ginten(0);
+                        display.setIntensity(1);
                         sound.soundbonus();
                     } else {
-                        pc.ginten(1);
+                        display.setIntensity(0);
                         sound.soundbonus();
                     }
                     if (startbonustimeleft == 0) {
                         sound.music(0);
                         sound.soundbonusoff();
-                        pc.ginten(1);
+                        display.setIntensity(0);
                     }
                 }
             } else {
@@ -327,12 +303,11 @@ drawing.drawBonus(292, 18);
     }
 
     void drawemeralds() {
-        int x, y;
         emmask = 1 << main.getcplayer();
-        for (x = 0; x < 15; x++)
-            for (y = 0; y < 10; y++)
+        for (int x = 0; x < 15; x++)
+            for (int y = 0; y < 10; y++)
                 if ((emfield[y * 15 + x] & emmask) != 0)
-drawing.drawEmerald(x * 20 + 12, y * 18 + 21);
+                    drawing.drawEmerald(x * 20 + 12, y * 18 + 21);
     }
 
     void drawexplosion() {
@@ -353,7 +328,7 @@ drawing.drawEmerald(x * 20 + 12, y * 18 + 21);
 
     void endbonusmode() {
         bonusmode = false;
-        pc.ginten(0);
+        display.setIntensity(0);
     }
 
     void erasebonus() {
@@ -361,7 +336,7 @@ drawing.drawEmerald(x * 20 + 12, y * 18 + 21);
             bonusvisible = false;
             sprite.erasespr(14);
         }
-        pc.ginten(0);
+        display.setIntensity(0);
     }
 
     void erasedigger() {
@@ -388,11 +363,11 @@ drawing.drawEmerald(x * 20 + 12, y * 18 + 21);
             r = ry;
         if ((emfield[y * 15 + x] & emmask) != 0) {
             if (r == embox[dir]) {
-drawing.drawEmerald(x * 20 + 12, y * 18 + 21);
+                drawing.drawEmerald(x * 20 + 12, y * 18 + 21);
                 main.incpenalty();
             }
             if (r == embox[dir + 1]) {
-drawing.eraseEmerald(x * 20 + 12, y * 18 + 21);
+                drawing.eraseEmerald(x * 20 + 12, y * 18 + 21);
                 main.incpenalty();
                 hit = true;
                 emfield[y * 15 + x] &= ~emmask;
@@ -402,7 +377,6 @@ drawing.eraseEmerald(x * 20 + 12, y * 18 + 21);
     }
 
     public void init() {
-
         if (gamethread != null)
             gamethread.stop();
 
@@ -415,17 +389,19 @@ drawing.eraseEmerald(x * 20 + 12, y * 18 + 21);
         } catch (Exception e) {
         }
 
-        pc.pixels = new int[65536];
+        display.pixels = new int[65536];
 
         for (int i = 0; i < 2; i++) {
-            pc.source[i] = new MemoryImageSource(pc.width, pc.height, new IndexColorModel(8, 4, pc.pal[i][0], pc.pal[i][1], pc.pal[i][2]), pc.pixels, 0, pc.width);
-            pc.source[i].setAnimated(true);
-            pc.image[i] = createImage(pc.source[i]);
-            pc.source[i].newPixels();
+            display.source[i] = new MemoryImageSource(display.width, display.height,
+                    new IndexColorModel(8, 4, display.palettes[i][0], display.palettes[i][1], display.palettes[i][2]),
+                    display.pixels, 0, display.width);
+            display.source[i].setAnimated(true);
+            display.image[i] = createImage(display.source[i]);
+            display.source[i].newPixels();
         }
 
-        pc.currentImage = pc.image[0];
-        pc.currentSource = pc.source[0];
+        display.currentImage = display.image[0];
+        display.currentSource = display.source[0];
 
         gamethread = new Thread(this);
         gamethread.start();
@@ -434,7 +410,7 @@ drawing.eraseEmerald(x * 20 + 12, y * 18 + 21);
     void initbonusmode() {
         bonusmode = true;
         erasebonus();
-        pc.ginten(1);
+        display.setIntensity(1);
         bonustimeleft = 250 - main.levof10() * 20;
         startbonustimeleft = 20;
         eatmsc = 1;
@@ -550,7 +526,7 @@ drawing.eraseEmerald(x * 20 + 12, y * 18 + 21);
     void killemerald(int x, int y) {
         if ((emfield[y * 15 + x + 15] & emmask) != 0) {
             emfield[y * 15 + x + 15] &= ~emmask;
-drawing.eraseEmerald(x * 20 + 12, (y + 1) * 18 + 21);
+            drawing.eraseEmerald(x * 20 + 12, (y + 1) * 18 + 21);
         }
     }
 
@@ -563,10 +539,9 @@ drawing.eraseEmerald(x * 20 + 12, (y + 1) * 18 + 21);
     }
 
     void makeemfield() {
-        int x, y;
         emmask = 1 << main.getcplayer();
-        for (x = 0; x < 15; x++)
-            for (y = 0; y < 10; y++)
+        for (int x = 0; x < 15; x++)
+            for (int y = 0; y < 10; y++)
                 if (main.getlevch(x, y, main.levplan()) == 'C')
                     emfield[y * 15 + x] |= emmask;
                 else
@@ -576,14 +551,14 @@ drawing.eraseEmerald(x * 20 + 12, (y + 1) * 18 + 21);
     void newframe() {
         input.checkkeyb();
         time += frametime;
-        long l = time - pc.gethrt();
+        long l = time - display.getCurrentTimeMillis();
         if (l > 0) {
             try {
                 Thread.sleep((int) l);
             } catch (Exception e) {
             }
         }
-        pc.currentSource.newPixels();
+        display.currentSource.newPixels();
     }
 
     public void paint(Graphics g) {
@@ -608,24 +583,13 @@ drawing.eraseEmerald(x * 20 + 12, (y + 1) * 18 + 21);
         main.main();
     }
 
-    // public void start() {
-    //     requestFocus();
-    //  }
-
     public void update(Graphics g) {
         if (!Objects.isNull(g)) {
-
-            int originalWidth = pc.currentImage.getWidth(this);
-            int originalHeight = pc.currentImage.getHeight(this);
-
-            // Вычисляем новые размеры с учетом коэффициента масштабирования
+            int originalWidth = display.currentImage.getWidth(this);
+            int originalHeight = display.currentImage.getHeight(this);
             int newWidth = originalWidth * scaleFactor;
             int newHeight = originalHeight * scaleFactor;
-
-            // Рисуем изображение с новыми размерами
-            g.drawImage(pc.currentImage, 0, 32, newWidth, newHeight, this);
-
-
+            g.drawImage(display.currentImage, 0, topIndent, newWidth, newHeight, this);
         }
     }
 
@@ -638,35 +602,13 @@ drawing.eraseEmerald(x * 20 + 12, (y + 1) * 18 + 21);
             ddir = dir;
         else
             ddir = -1;
-        // Allow turn when aligned on the perpendicular axis
+        // Allow turn when aligned on the perpendicular axis.
+        // Direction is preserved across frames by readdir() checking held keys,
+        // so the turn happens automatically once alignment is reached.
         if (diggerrx == 0 && (ddir == 2 || ddir == 6))
             digdir = digmdir = ddir;
         if (diggerry == 0 && (ddir == 4 || ddir == 0))
             digdir = digmdir = ddir;
-        // Requested perpendicular turn but not yet aligned on the perpendicular axis:
-        // snap to grid so the turn can happen immediately on the next frame.
-        if (ddir != -1 && ddir != digmdir) {
-            boolean wantsVertical = (ddir == 2 || ddir == 6);
-            boolean movingHorizontal = (digmdir == 0 || digmdir == 4);
-            boolean wantsHorizontal = (ddir == 4 || ddir == 0);
-            boolean movingVertical = (digmdir == 2 || digmdir == 6);
-            if (wantsVertical && movingHorizontal && diggerrx != 0) {
-                // Snap horizontally to the nearest grid line
-                int cellX = (diggerx - 12) / 20;
-                int nearestX = (diggerrx > 10) ? (cellX + 1) * 20 + 12 : cellX * 20 + 12;
-                diggerx = nearestX;
-                diggerrx = 0;
-                digdir = digmdir = ddir;
-            }
-            if (wantsHorizontal && movingVertical && diggerry != 0) {
-                // Snap vertically to the nearest grid line
-                int cellY = (diggery - 18) / 18;
-                int nearestY = (diggerry > 9) ? (cellY + 1) * 18 + 18 : cellY * 18 + 18;
-                diggery = nearestY;
-                diggerry = 0;
-                digdir = digmdir = ddir;
-            }
-        }
         if (dir == -1)
             digmdir = -1;
         else if (digmdir == -1 && ddir == -1)
@@ -679,7 +621,7 @@ drawing.eraseEmerald(x * 20 + 12, (y + 1) * 18 + 21);
         diggerox = diggerx;
         diggeroy = diggery;
         if (digmdir != -1)
-drawing.digTunnel(diggerox, diggeroy, digmdir);
+            drawing.digTunnel(diggerox, diggeroy, digmdir);
         switch (digmdir) {
             case 0:
                 drawing.drawTunnelEdgeRight(diggerx, diggery);
@@ -713,9 +655,20 @@ drawing.digTunnel(diggerox, diggeroy, digmdir);
                 digtime++;
             } else if (!bags.pushudbags(clbits))
                 push = false;
-            if (!push) { /* Strange, push not completely defined */
+            if (!push) {
+                // Restore previous position, then snap to nearest grid line
+                // in the BLOCKED direction so perpendicular turns are not blocked.
+                // Round toward the origin cell (opposite of blocked direction).
                 diggerx = diggerox;
                 diggery = diggeroy;
+                if (digmdir == 2)      // blocked going up → snap down to current cell
+                    diggery = ((diggery - 18 + 17) / 18) * 18 + 18;
+                else if (digmdir == 6) // blocked going down → snap up to current cell
+                    diggery = ((diggery - 18) / 18) * 18 + 18;
+                if (digmdir == 4)      // blocked going left → snap right to current cell
+                    diggerx = ((diggerx - 12 + 19) / 20) * 20 + 12;
+                else if (digmdir == 0) // blocked going right → snap left to current cell
+                    diggerx = ((diggerx - 12) / 20) * 20 + 12;
                 drawing.drawDigger(digmdir, diggerx, diggery, notfiring && rechargetime == 0);
                 main.incpenalty();
                 digdir = reversedir(digmdir);
@@ -770,25 +723,25 @@ drawing.digTunnel(diggerox, diggeroy, digmdir);
             switch (firedir) {
                 case 0:
                     firex += 8;
-                    pix = pc.ggetpix(firex, firey + 4) | pc.ggetpix(firex + 4, firey + 4);
+                    pix = display.getPixel(firex, firey + 4) | display.getPixel(firex + 4, firey + 4);
                     break;
                 case 4:
                     firex -= 8;
-                    pix = pc.ggetpix(firex, firey + 4) | pc.ggetpix(firex + 4, firey + 4);
+                    pix = display.getPixel(firex, firey + 4) | display.getPixel(firex + 4, firey + 4);
                     break;
                 case 2:
                     firey -= 7;
-                    pix = (pc.ggetpix(firex + 4, firey) | pc.ggetpix(firex + 4, firey + 1) |
-                            pc.ggetpix(firex + 4, firey + 2) | pc.ggetpix(firex + 4, firey + 3) |
-                            pc.ggetpix(firex + 4, firey + 4) | pc.ggetpix(firex + 4, firey + 5) |
-                            pc.ggetpix(firex + 4, firey + 6)) & 0xc0;
+                    pix = (display.getPixel(firex + 4, firey) | display.getPixel(firex + 4, firey + 1) |
+                            display.getPixel(firex + 4, firey + 2) | display.getPixel(firex + 4, firey + 3) |
+                            display.getPixel(firex + 4, firey + 4) | display.getPixel(firex + 4, firey + 5) |
+                            display.getPixel(firex + 4, firey + 6)) & 0xc0;
                     break;
                 case 6:
                     firey += 7;
-                    pix = (pc.ggetpix(firex, firey) | pc.ggetpix(firex, firey + 1) |
-                            pc.ggetpix(firex, firey + 2) | pc.ggetpix(firex, firey + 3) |
-                            pc.ggetpix(firex, firey + 4) | pc.ggetpix(firex, firey + 5) |
-                            pc.ggetpix(firex, firey + 6)) & 3;
+                    pix = (display.getPixel(firex, firey) | display.getPixel(firex, firey + 1) |
+                            display.getPixel(firex, firey + 2) | display.getPixel(firex, firey + 3) |
+                            display.getPixel(firex, firey + 4) | display.getPixel(firex, firey + 5) |
+                            display.getPixel(firex, firey + 6)) & 3;
                     break;
             }
             clbits = drawing.drawFire(firex, firey, 0);

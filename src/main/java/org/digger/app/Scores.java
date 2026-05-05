@@ -101,7 +101,7 @@ class Scores implements Runnable {
         else
             scoret = score2;
         if (scoret > scorehigh[11]) {
-            dig.pc.gclear();
+            dig.display.clearScreen();
             drawscores();
             dig.main.playerDisplayBuffer = "PLAYER ";
             if (dig.main.getcplayer() == 0)
@@ -125,12 +125,12 @@ dig.drawing.drawText("GAME OVER", 104, 0, 3, true);
                 for (i = 0; i < 2; i++) { //i<8;i++) {
                     dig.sprite.setretr(true);
 //		dig.Pc.ginten(1);
-                    dig.pc.gpal(1 - (j & 1));
+                    dig.display.setPalette(1 - (j & 1));
                     dig.sprite.setretr(false);
                     for (z = 0; z < 111; z++) ; /* A delay loop */
-                    dig.pc.gpal(0);
+                    dig.display.setPalette(0);
 //		dig.Pc.ginten(0);
-                    dig.pc.ginten(1 - i & 1);
+                    dig.display.setIntensity(1 - i & 1);
                     dig.newframe();
                 }
             dig.sound.setupsound();
@@ -150,7 +150,7 @@ dig.drawing.drawText("         ", 104, 0, 3, true);
     int getinitial(int x, int y) {
         int i, j;
         dig.input.keypressed = 0;
-        dig.pc.gwrite(x, y, '_', 3, true);
+        dig.display.drawChar(x, y, '_', 3, true);
         for (j = 0; j < 5; j++) {
             for (i = 0; i < 40; i++) {
                 if ((dig.input.keypressed & 0x80) == 0 && dig.input.keypressed != 0)
@@ -159,7 +159,7 @@ dig.drawing.drawText("         ", 104, 0, 3, true);
             }
             for (i = 0; i < 40; i++) {
                 if ((dig.input.keypressed & 0x80) == 0 && dig.input.keypressed != 0) {
-                    dig.pc.gwrite(x, y, '_', 3, true);
+                    dig.display.drawChar(x, y, '_', 3, true);
                     return dig.input.keypressed;
                 }
                 flashywait(15);
@@ -186,7 +186,7 @@ dig.drawing.drawText("ENTER YOUR", 100, 70, 3, true);
                 k = dig.input.getasciikey(dig.input.keypressed);
             }
             if (k != 0) {
-                dig.pc.gwrite(i * 24 + 128, 130, k, 3, true);
+                dig.display.drawChar(i * 24 + 128, 130, k, 3, true);
                 StringBuffer sb = new StringBuffer(scoreinit[0]);
                 sb.setCharAt(i, (char) k);
                 scoreinit[0] = sb.toString();
@@ -196,9 +196,9 @@ dig.drawing.drawText("ENTER YOUR", 100, 70, 3, true);
         for (i = 0; i < 20; i++)
             flashywait(15);
         dig.sound.setupsound();
-        dig.pc.gclear();
-        dig.pc.gpal(0);
-        dig.pc.ginten(0);
+dig.display.clearScreen();
+dig.display.setPalette(0);
+        dig.display.setIntensity(0);
         dig.newframe();    // needed by Java version!!
         dig.sprite.setretr(true);
     }
@@ -330,7 +330,7 @@ dig.drawing.drawText(hsbuf, 16, 31 + 13 * i, col);
         while (w > 0) {
             d = (int) (n % 10);
             if (w > 1 || d > 0)
-                dig.pc.gwrite(xp, y, d + '0', c, false);    //true
+                dig.display.drawChar(xp, y, d + '0', c, false);
             n /= 10;
             w--;
             xp -= 12;
