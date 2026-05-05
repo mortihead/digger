@@ -142,21 +142,10 @@ class Scores implements Runnable {
 
 
     void flashywait(int n) {
-/*  int i,gt,cx,p=0,k=1;
-  int gap=19;
-  dig.Sprite.setretr(false);
-  for (i=0;i<(n<<1);i++) {
-	for (cx=0;cx<dig.Sound.volume;cx++) {
-	  dig.Pc.gpal(p=1-p);
-	  for (gt=0;gt<gap;gt++);
-	}
-	} */
-
         try {
             Thread.sleep(n * 2);
         } catch (Exception e) {
         }
-
     }
 
     int getinitial(int x, int y) {

@@ -1,10 +1,13 @@
 package org.digger.app;
 
-class _bag {
+/**
+ * Mutable state data for a single gold bag in the game field.
+ */
+class BagState {
     int x, y, h, v, xr, yr, dir, wt, gt, fallh;
     boolean wobbling, unfallen, exist;
 
-    void copyFrom(_bag t) {
+    void copyFrom(BagState t) {
         x = t.x;
         y = t.y;
         h = t.h;

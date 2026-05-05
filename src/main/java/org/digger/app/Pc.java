@@ -41,10 +41,6 @@ class Pc {
         return System.currentTimeMillis();
     }
 
-    int getkips() {
-        return 0;        // phony
-    }
-
     void ggeti(int x, int y, short[] p, int w, int h) {
 
         int src = 0;

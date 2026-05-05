@@ -2,6 +2,7 @@
 [Classic Digger](https://en.wikipedia.org/wiki/Digger_(video_game)) old DOS game revisited in Java
 
 ![Digger Game](digger.png)
+
 ## About the Game
 Digger has been ported to many different platforms over the years, including the Commodore 64, Amiga
 
@@ -21,23 +22,38 @@ The code uses only standard JDK libraries. The graphics are implemented using AW
 | `scale_factor` | The scale factor for graphics, default set to 3. |
 
 ## Controls
-| Control     | Action       |
-|-------------|--------------|
-| Up Arrow    | Move Up      |
-| Down Arrow  | Move Down    |
-| Left Arrow  | Move Left    |
-| Right Arrow | Move Right   |
-| Space       | Game pause   |
-| F1          | Fire         |
-| F10         | Start screen |
+| Key         | Action                                    |
+|-------------|-------------------------------------------|
+| ↑           | Move up                                   |
+| ↓           | Move down                                 |
+| ←           | Move left                                 |
+| →           | Move right                                |
+| Space       | Pause / unpause game                      |
+| F1          | Fire (shoot)                              |
+| Enter/Space | Start game (on title screen)              |
+| Esc         | Switch between 1 and 2 players (title)    |
+| F7          | Toggle background music on/off            |
+| F9          | Toggle all sound on/off                   |
+| F10         | Return to title screen                    |
+| +           | Increase game speed                       |
+| -           | Decrease game speed                       |
+| Ctrl+T      | Take over during recorded game playback   |
 
-## Ho to run (under constraction)
-To run the game, you need to have Java installed on your system. You can download the latest version of Java from the [official website](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html).
+## How to run
+To run the game, you need to have Java 17+ installed on your system.
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/mortihead/digger
-   cd digger
-   javac -d out/production/Digger src/org/digger/app/*.java
-   java -cp out/production/Digger org.digger.app.Digger```
-   
+### Build and run with Maven
+```bash
+git clone https://github.com/mortihead/digger
+cd digger
+mvn clean package
+java -jar target/digger-app-1.0.0.jar
+```
+
+### Build and run manually
+```bash
+git clone https://github.com/mortihead/digger
+cd digger
+javac -d out/production/Digger src/org/digger/app/*.java
+java -cp out/production/Digger org.digger.app.Digger
+```

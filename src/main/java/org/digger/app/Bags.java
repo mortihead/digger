@@ -3,7 +3,9 @@ class Bags {
 
     Digger dig;
 
-    _bag[] bagdat1 = {new _bag(), new _bag(), new _bag(), new _bag(), new _bag(), new _bag(), new _bag(), new _bag()}, bagdat2 = {new _bag(), new _bag(), new _bag(), new _bag(), new _bag(), new _bag(), new _bag(), new _bag()}, bagdat = {new _bag(), new _bag(), new _bag(), new _bag(), new _bag(), new _bag(), new _bag(), new _bag()};
+    BagState[] bagdat1 = {new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState()},
+            bagdat2 = {new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState()},
+            bagdat = {new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState()};
 
     int pushcount = 0, goldtime = 0;
 

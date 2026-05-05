@@ -1,5 +1,3 @@
-/* WARNING! This code is ugly and highly non-object-oriented.
-It was ported from C almost mechanically! */
 package org.digger.app;
 
 import java.awt.*;
@@ -20,7 +18,7 @@ import java.util.Objects;
 public class Digger extends Frame implements Runnable {
     private static final String INI_FILE = "digger.ini";
     private final Map<String, String> parameters;
-    public boolean running; // Флаг для контроля
+    public boolean running;
 
     static int MAX_RATE = 200, MIN_RATE = 40;
 
@@ -92,8 +90,12 @@ public class Digger extends Frame implements Runnable {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent we) {
-                running = false; // Устанавливаем флаг для завершения операции
-                dispose(); // Закрываем окно
+                running = false;
+                input.escape = true;
+                if (sound != null)
+                    sound.killsound();
+                dispose();
+                System.exit(0);
             }
         });
 
@@ -461,7 +463,6 @@ public class Digger extends Frame implements Runnable {
     }
 
     public boolean keyDownProcess(KeyEvent e) {
-        System.out.println("key pressed " + e.getKeyCode());
         switch (e.getKeyCode()) {
             case KeyEvent.VK_UP:
                 input.Key_uppressed();
@@ -478,10 +479,29 @@ public class Digger extends Frame implements Runnable {
             case KeyEvent.VK_F1:
                 input.Key_f1pressed();
                 break;
-            case KeyEvent.VK_F10:
-                input.Key_f10pressed();
+            case KeyEvent.VK_F7:
+                sound.musicflag = !sound.musicflag;
+                if (sound.musicflag && !sound.musicplaying && sound.soundflag)
+                    sound.music(sound.tuneno);
                 break;
-
+            case KeyEvent.VK_F9:
+                sound.soundflag = !sound.soundflag;
+                break;
+            case KeyEvent.VK_F10:
+                input.escape = true;
+                break;
+            case KeyEvent.VK_PLUS:
+            case KeyEvent.VK_EQUALS:
+                input.pluspressed = true;
+                break;
+            case KeyEvent.VK_MINUS:
+                input.minuspressed = true;
+                break;
+            case KeyEvent.VK_T:
+                if ((e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0) {
+                    // Ctrl+T cheat: take over during playback (no-op without recording)
+                }
+                break;
             default:
                 input.processkey(e.getKeyCode());
                 break;
@@ -490,7 +510,6 @@ public class Digger extends Frame implements Runnable {
     }
 
     public boolean keyUpProcess(KeyEvent e) {
-        System.out.println("key up " + e.getKeyCode());
         switch (e.getKeyCode()) {
             case KeyEvent.VK_UP:
                 input.Key_upreleased();
@@ -507,12 +526,14 @@ public class Digger extends Frame implements Runnable {
             case KeyEvent.VK_F1:
                 input.Key_f1released();
                 break;
-            case KeyEvent.VK_F10:
-                input.Key_f10released();
+            case KeyEvent.VK_PLUS:
+            case KeyEvent.VK_EQUALS:
+                input.pluspressed = false;
                 break;
-
+            case KeyEvent.VK_MINUS:
+                input.minuspressed = false;
+                break;
             default:
-                // input.processkey(e.getKeyCode());
                 break;
         }
         return true;

@@ -4,7 +4,7 @@ class Monster {
 
     Digger dig;
 
-    _monster[] mondat = {new _monster(), new _monster(), new _monster(), new _monster(), new _monster(), new _monster()};    // [6]
+    MonsterState[] mondat = {new MonsterState(), new MonsterState(), new MonsterState(), new MonsterState(), new MonsterState(), new MonsterState()};    // [6]
 
     int nextmonster = 0, totalmonsters = 0, maxmononscr = 0, nextmontime = 0, mongaptime = 0;
 

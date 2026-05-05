@@ -10,7 +10,7 @@ class Main {
 
     int digsprorder[] = {14, 13, 7, 6, 5, 4, 3, 2, 1, 12, 11, 10, 9, 8, 15, 0};    // [16]
 
-    _game[] gamedat = {new _game(), new _game()};
+    GameState[] gamedat = {new GameState(), new GameState()};
 
     String pldispbuf = "";
 
@@ -115,9 +115,7 @@ class Main {
     }
 
     void calibrate() {
-        dig.sound.volume = (int) (dig.pc.getkips() / 291);
-        if (dig.sound.volume == 0)
-            dig.sound.volume = 1;
+        dig.sound.volume = 1;
     }
 
     void checklevdone() {
@@ -229,12 +227,11 @@ class Main {
 
             while (!start) {
                 start = dig.input.teststart();
-                if (dig.input.keypressed != 0)
-                    System.out.println("key=" + dig.input.keypressed);
-                if (dig.input.keypressed == KeyEvent.VK_ESCAPE) {  //	esc
-                    System.out.println("ESCAPE pressed");
-                    switchnplayers();
-                    shownplayers();
+                if (dig.input.keypressed != 0) {
+                    if (dig.input.keypressed == KeyEvent.VK_ESCAPE) {  //	esc
+                        switchnplayers();
+                        shownplayers();
+                    }
                     dig.input.akeypressed = 0;
                     dig.input.keypressed = 0;
                 }
@@ -297,12 +294,16 @@ class Main {
                 frame++;
                 if (frame > 250)
                     frame = 0;
-                System.out.println(frame);
                 if (!dig.running && frame > 1) {
                     System.out.println("Операция прервана.");
                     return; // Завершаем выполнение, если флаг установлен в false
                 }
             }
+            // Clear any residual key state so spacebar at title screen
+            // doesn't immediately trigger pause in gameplay
+            dig.input.akeypressed = 0;
+            dig.input.keypressed = 0;
+
             gamedat[0].level = 1;
             gamedat[0].lives = 3;
             if (nplayers == 2) {
@@ -320,10 +321,6 @@ class Main {
             if (nplayers == 2)
                 flashplayer = true;
             curplayer = 0;
-//	if (dig.Input.escape)
-//	  break;
-//    if (recording)
-//	  recputinit();
             while ((gamedat[0].lives != 0 || gamedat[1].lives != 0) && !dig.input.escape) {
                 gamedat[curplayer].dead = false;
                 while (!gamedat[curplayer].dead && gamedat[curplayer].lives != 0 && !dig.input.escape) {
@@ -336,21 +333,11 @@ class Main {
                 }
             }
             dig.input.escape = false;
-        } while (!false); //dig.Input.escape);
-/*  dig.Sound.soundoff();
-  restoreint8();
-  restorekeyb();
-  graphicsoff(); */
+        } while (!false);
     }
 
     void play() {
         int t, c;
-/*  if (playing)
-	randv=recgetrand();
-  else
-	randv=getlrt();
-  if (recording)
-	recputrand(randv); */
         if (levnotdrawn) {
             levnotdrawn = false;
             drawscreen();
@@ -367,7 +354,6 @@ class Main {
                     for (c = 1; c <= 3; c++) {
                         dig.drawing.outtext(pldispbuf, 108, 0, c);
                         dig.scores.writecurscore(c);
-                        /* olddelay(20); */
                         dig.newframe();
                         if (dig.input.escape)
                             return;
@@ -389,9 +375,6 @@ class Main {
             dig.dodigger();
             dig.monster.domonsters();
             dig.bags.dobags();
-/*  if (penalty<8)
-	  for (t=(8-penalty)*5;t>0;t--)
-		olddelay(1); */
             if (penalty > 8)
                 dig.monster.incmont(penalty - 8);
             testpause();
@@ -408,8 +391,6 @@ class Main {
             dig.dodigger();
             dig.monster.domonsters();
             if (penalty < 8)
-/*    for (t=(8-penalty)*5;t>0;t--)
-		 olddelay(1); */
                 t = 0;
         }
         dig.sound.soundstop();
@@ -488,7 +469,6 @@ class Main {
             dig.drawing.drawlives();
             dig.newframe();
             dig.time = dig.pc.gethrt() - dig.frametime;
-//	olddelay(200);
             dig.input.keypressed = 0;
         } else
             dig.sound.soundpauseoff();

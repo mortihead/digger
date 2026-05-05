@@ -2,8 +2,6 @@ package org.digger.app;
 
 abstract class alpha {
 
-    static String copyright = "Portions Copyright(c) 1983 Windmill Software Inc.";
-
     static int textoffdat[] = {    // [16]
             72, 0, -72, -72,
             144, 0, -288, 144,

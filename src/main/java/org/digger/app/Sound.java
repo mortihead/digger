@@ -1,129 +1,168 @@
 package org.digger.app;
 
-// sound has not been ported yet
-
+/**
+ * PC Speaker sound emulation for Digger.
+ *
+ * Originally driven by Intel 8253 timer hardware and IRQ0 (Int 8) interrupts.
+ * Now uses SoundEngine to generate real-time square wave audio via Java Sound API.
+ *
+ * Timer divisor → frequency: freq = 1193180 / divisor (Hz)
+ *   0x7d00 (32000) → ~37 Hz  (sub-audible, used as "silence" marker)
+ *   0x8e8  (2280)  → ~523 Hz (C5)
+ *   0x11d1 (4561)  → ~262 Hz (C4)
+ */
 class Sound {
 
-    Digger dig;
+    private static final int SILENCE_T0VAL = 0x7d00;
+    private static final int DEFAULT_T2VAL = 40;
 
+    private final Digger dig;
+    private SoundEngine engine;
 
     int wavetype = 0, t2val = 0, t0val = 0, musvol = 0;
-    int spkrmode = 0, timerrate = 0x7d0, timercount = 0;
+    int spkrmode = 0;
     int pulsewidth = 1;
     int volume = 0;
 
-    int timerclock = 0;        // sint3
+    int timerclock = 0;
 
     boolean soundflag = true, musicflag = true;
-
     boolean sndflag = false, soundpausedflag = false;
 
+    // --- Level done jingle ---
     boolean soundlevdoneflag = false;
     int nljpointer = 0, nljnoteduration = 0;
+    int[] newlevjingle = {0x8e8, 0x712, 0x5f2, 0x7f0, 0x6ac, 0x54c, 0x712, 0x5f2, 0x4b8, 0x474, 0x474};
 
-    int newlevjingle[] = {0x8e8, 0x712, 0x5f2, 0x7f0, 0x6ac, 0x54c, 0x712, 0x5f2, 0x4b8, 0x474, 0x474};    // [11]
-
+    // --- Fall sound ---
     boolean soundfallflag = false, soundfallf = false;
     int soundfallvalue, soundfalln = 0;
 
+    // --- Break sound ---
     boolean soundbreakflag = false;
     int soundbreakduration = 0, soundbreakvalue = 0;
 
+    // --- Wobble sound ---
     boolean soundwobbleflag = false;
     int soundwobblen = 0;
 
+    // --- Fire sound ---
     boolean soundfireflag = false;
     int soundfirevalue, soundfiren = 0;
 
+    // --- Explode sound ---
     boolean soundexplodeflag = false;
     int soundexplodevalue, soundexplodeduration;
 
+    // --- Bonus sound ---
     boolean soundbonusflag = false;
     int soundbonusn = 0;
 
+    // --- Emerald monster sound ---
     boolean soundemflag = false;
 
+    // --- Emerald collect sound ---
     boolean soundemeraldflag = false;
     int soundemeraldduration, emerfreq, soundemeraldn;
 
+    // --- Gold collect sound ---
     boolean soundgoldflag = false, soundgoldf = false;
     int soundgoldvalue1, soundgoldvalue2, soundgoldduration;
 
+    // --- Eat monster sound ---
     boolean soundeatmflag = false;
     int soundeatmvalue, soundeatmduration, soundeatmn;
 
+    // --- Digger death sound ---
     boolean soundddieflag = false;
     int soundddien, soundddievalue;
 
+    // --- 1-Up sound ---
     boolean sound1upflag = false;
     int sound1upduration = 0;
 
+    // --- Music state ---
     boolean musicplaying = false;
-    int musicp = 0, tuneno = 0, noteduration = 0, notevalue = 0, musicmaxvol = 0, musicattackrate = 0, musicsustainlevel = 0, musicdecayrate = 0, musicnotewidth = 0, musicreleaserate = 0, musicstage = 0, musicn = 0;
+    int musicp = 0, tuneno = 0, noteduration = 0, notevalue = 0;
+    int musicmaxvol = 0, musicattackrate = 0, musicsustainlevel = 0;
+    int musicdecayrate = 0, musicnotewidth = 0, musicreleaserate = 0;
+    int musicstage = 0, musicn = 0;
 
-    /*int bonusjingle[]={	// [321]
-      0x11d1,2,0x11d1,2,0x11d1,4,0x11d1,2,0x11d1,2,0x11d1,4,0x11d1,2,0x11d1,2,
-       0xd59,4, 0xbe4,4, 0xa98,4,0x11d1,2,0x11d1,2,0x11d1,4,0x11d1,2,0x11d1,2,
-      0x11d1,4, 0xd59,2, 0xa98,2, 0xbe4,4, 0xe24,4,0x11d1,4,0x11d1,2,0x11d1,2,
-      0x11d1,4,0x11d1,2,0x11d1,2,0x11d1,4,0x11d1,2,0x11d1,2, 0xd59,4, 0xbe4,4,
-       0xa98,4, 0xd59,2, 0xa98,2, 0x8e8,10,0xa00,2, 0xa98,2, 0xbe4,2, 0xd59,4,
-       0xa98,4, 0xd59,4,0x11d1,2,0x11d1,2,0x11d1,4,0x11d1,2,0x11d1,2,0x11d1,4,
-      0x11d1,2,0x11d1,2, 0xd59,4, 0xbe4,4, 0xa98,4,0x11d1,2,0x11d1,2,0x11d1,4,
-      0x11d1,2,0x11d1,2,0x11d1,4, 0xd59,2, 0xa98,2, 0xbe4,4, 0xe24,4,0x11d1,4,
-      0x11d1,2,0x11d1,2,0x11d1,4,0x11d1,2,0x11d1,2,0x11d1,4,0x11d1,2,0x11d1,2,
-       0xd59,4, 0xbe4,4, 0xa98,4, 0xd59,2, 0xa98,2, 0x8e8,10,0xa00,2, 0xa98,2,
-       0xbe4,2, 0xd59,4, 0xa98,4, 0xd59,4, 0xa98,2, 0xa98,2, 0xa98,4, 0xa98,2,
-       0xa98,2, 0xa98,4, 0xa98,2, 0xa98,2, 0xa98,4, 0x7f0,4, 0xa98,4, 0x7f0,4,
-       0xa98,4, 0x7f0,4, 0xa98,4, 0xbe4,4, 0xd59,4, 0xe24,4, 0xfdf,4, 0xa98,2,
-       0xa98,2, 0xa98,4, 0xa98,2, 0xa98,2, 0xa98,4, 0xa98,2, 0xa98,2, 0xa98,4,
-       0x7f0,4, 0xa98,4, 0x7f0,4, 0xa98,4, 0x7f0,4, 0x8e8,4, 0x970,4, 0x8e8,4,
-       0x970,4, 0x8e8,4, 0xa98,2, 0xa98,2, 0xa98,4, 0xa98,2, 0xa98,2, 0xa98,4,
-       0xa98,2, 0xa98,2, 0xa98,4, 0x7f0,4, 0xa98,4, 0x7f0,4, 0xa98,4, 0x7f0,4,
-       0xa98,4, 0xbe4,4, 0xd59,4, 0xe24,4, 0xfdf,4, 0xa98,2, 0xa98,2, 0xa98,4,
-       0xa98,2, 0xa98,2, 0xa98,4, 0xa98,2, 0xa98,2, 0xa98,4, 0x7f0,4, 0xa98,4,
-       0x7f0,4, 0xa98,4, 0x7f0,4, 0x8e8,4, 0x970,4, 0x8e8,4, 0x970,4, 0x8e8,4,
-      0x7d64};
+    // --- Music jingles (format: [freq1, dur1, freq2, dur2, ...], terminated by 0x7d64) ---
+    int[] bonusjingle = {
+            0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2,
+            0xd59, 4, 0xbe4, 4, 0xa98, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2,
+            0x11d1, 4, 0xd59, 2, 0xa98, 2, 0xbe4, 4, 0xe24, 4, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2,
+            0x11d1, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2, 0xd59, 4, 0xbe4, 4,
+            0xa98, 4, 0xd59, 2, 0xa98, 2, 0x8e8, 10, 0xa00, 2, 0xa98, 2, 0xbe4, 2, 0xd59, 4,
+            0xa98, 4, 0xd59, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4,
+            0x11d1, 2, 0x11d1, 2, 0xd59, 4, 0xbe4, 4, 0xa98, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4,
+            0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0xd59, 2, 0xa98, 2, 0xbe4, 4, 0xe24, 4, 0x11d1, 4,
+            0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2,
+            0xd59, 4, 0xbe4, 4, 0xa98, 4, 0xd59, 2, 0xa98, 2, 0x8e8, 10, 0xa00, 2, 0xa98, 2,
+            0xbe4, 2, 0xd59, 4, 0xa98, 4, 0xd59, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4, 0xa98, 2,
+            0xa98, 2, 0xa98, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4, 0x7f0, 4, 0xa98, 4, 0x7f0, 4,
+            0xa98, 4, 0x7f0, 4, 0xa98, 4, 0xbe4, 4, 0xd59, 4, 0xe24, 4, 0xfdf, 4, 0xa98, 2,
+            0xa98, 2, 0xa98, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4,
+            0x7f0, 4, 0xa98, 4, 0x7f0, 4, 0xa98, 4, 0x7f0, 4, 0x8e8, 4, 0x970, 4, 0x8e8, 4,
+            0x970, 4, 0x8e8, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4,
+            0xa98, 2, 0xa98, 2, 0xa98, 4, 0x7f0, 4, 0xa98, 4, 0x7f0, 4, 0xa98, 4, 0x7f0, 4,
+            0xa98, 4, 0xbe4, 4, 0xd59, 4, 0xe24, 4, 0xfdf, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4,
+            0xa98, 2, 0xa98, 2, 0xa98, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4, 0x7f0, 4, 0xa98, 4,
+            0x7f0, 4, 0xa98, 4, 0x7f0, 4, 0x8e8, 4, 0x970, 4, 0x8e8, 4, 0x970, 4, 0x8e8, 4,
+            0x7d64
+    };
 
-    int backgjingle[]={	// [291]
-       0xfdf,2,0x11d1,2, 0xfdf,2,0x1530,2,0x1ab2,2,0x1530,2,0x1fbf,4, 0xfdf,2,
-      0x11d1,2, 0xfdf,2,0x1530,2,0x1ab2,2,0x1530,2,0x1fbf,4, 0xfdf,2, 0xe24,2,
-       0xd59,2, 0xe24,2, 0xd59,2, 0xfdf,2, 0xe24,2, 0xfdf,2, 0xe24,2,0x11d1,2,
-       0xfdf,2,0x11d1,2, 0xfdf,2,0x1400,2, 0xfdf,4, 0xfdf,2,0x11d1,2, 0xfdf,2,
-      0x1530,2,0x1ab2,2,0x1530,2,0x1fbf,4, 0xfdf,2,0x11d1,2, 0xfdf,2,0x1530,2,
-      0x1ab2,2,0x1530,2,0x1fbf,4, 0xfdf,2, 0xe24,2, 0xd59,2, 0xe24,2, 0xd59,2,
-       0xfdf,2, 0xe24,2, 0xfdf,2, 0xe24,2,0x11d1,2, 0xfdf,2,0x11d1,2, 0xfdf,2,
-       0xe24,2, 0xd59,4, 0xa98,2, 0xbe4,2, 0xa98,2, 0xd59,2,0x11d1,2, 0xd59,2,
-      0x1530,4, 0xa98,2, 0xbe4,2, 0xa98,2, 0xd59,2,0x11d1,2, 0xd59,2,0x1530,4,
-       0xa98,2, 0x970,2, 0x8e8,2, 0x970,2, 0x8e8,2, 0xa98,2, 0x970,2, 0xa98,2,
-       0x970,2, 0xbe4,2, 0xa98,2, 0xbe4,2, 0xa98,2, 0xd59,2, 0xa98,4, 0xa98,2,
-       0xbe4,2, 0xa98,2, 0xd59,2,0x11d1,2, 0xd59,2,0x1530,4, 0xa98,2, 0xbe4,2,
-       0xa98,2, 0xd59,2,0x11d1,2, 0xd59,2,0x1530,4, 0xa98,2, 0x970,2, 0x8e8,2,
-       0x970,2, 0x8e8,2, 0xa98,2, 0x970,2, 0xa98,2, 0x970,2, 0xbe4,2, 0xa98,2,
-       0xbe4,2, 0xa98,2, 0xd59,2, 0xa98,4, 0x7f0,2, 0x8e8,2, 0xa98,2, 0xd59,2,
-      0x11d1,2, 0xd59,2,0x1530,4, 0xa98,2, 0xbe4,2, 0xa98,2, 0xd59,2,0x11d1,2,
-       0xd59,2,0x1530,4, 0xa98,2, 0x970,2, 0x8e8,2, 0x970,2, 0x8e8,2, 0xa98,2,
-       0x970,2, 0xa98,2, 0x970,2, 0xbe4,2, 0xa98,2, 0xbe4,2, 0xd59,2, 0xbe4,2,
-       0xa98,4,0x7d64};
+    int[] backgjingle = {
+            0xfdf, 2, 0x11d1, 2, 0xfdf, 2, 0x1530, 2, 0x1ab2, 2, 0x1530, 2, 0x1fbf, 4, 0xfdf, 2,
+            0x11d1, 2, 0xfdf, 2, 0x1530, 2, 0x1ab2, 2, 0x1530, 2, 0x1fbf, 4, 0xfdf, 2, 0xe24, 2,
+            0xd59, 2, 0xe24, 2, 0xd59, 2, 0xfdf, 2, 0xe24, 2, 0xfdf, 2, 0xe24, 2, 0x11d1, 2,
+            0xfdf, 2, 0x11d1, 2, 0xfdf, 2, 0x1400, 2, 0xfdf, 4, 0xfdf, 2, 0x11d1, 2, 0xfdf, 2,
+            0x1530, 2, 0x1ab2, 2, 0x1530, 2, 0x1fbf, 4, 0xfdf, 2, 0x11d1, 2, 0xfdf, 2, 0x1530, 2,
+            0x1ab2, 2, 0x1530, 2, 0x1fbf, 4, 0xfdf, 2, 0xe24, 2, 0xd59, 2, 0xe24, 2, 0xd59, 2,
+            0xfdf, 2, 0xe24, 2, 0xfdf, 2, 0xe24, 2, 0x11d1, 2, 0xfdf, 2, 0x11d1, 2, 0xfdf, 2,
+            0xe24, 2, 0xd59, 4, 0xa98, 2, 0xbe4, 2, 0xa98, 2, 0xd59, 2, 0x11d1, 2, 0xd59, 2,
+            0x1530, 4, 0xa98, 2, 0xbe4, 2, 0xa98, 2, 0xd59, 2, 0x11d1, 2, 0xd59, 2, 0x1530, 4,
+            0xa98, 2, 0x970, 2, 0x8e8, 2, 0x970, 2, 0x8e8, 2, 0xa98, 2, 0x970, 2, 0xa98, 2,
+            0x970, 2, 0xbe4, 2, 0xa98, 2, 0xbe4, 2, 0xa98, 2, 0xd59, 2, 0xa98, 4, 0xa98, 2,
+            0xbe4, 2, 0xa98, 2, 0xd59, 2, 0x11d1, 2, 0xd59, 2, 0x1530, 4, 0xa98, 2, 0xbe4, 2,
+            0xa98, 2, 0xd59, 2, 0x11d1, 2, 0xd59, 2, 0x1530, 4, 0xa98, 2, 0x970, 2, 0x8e8, 2,
+            0x970, 2, 0x8e8, 2, 0xa98, 2, 0x970, 2, 0xa98, 2, 0x970, 2, 0xbe4, 2, 0xa98, 2,
+            0xbe4, 2, 0xa98, 2, 0xd59, 2, 0xa98, 4, 0x7f0, 2, 0x8e8, 2, 0xa98, 2, 0xd59, 2,
+            0x11d1, 2, 0xd59, 2, 0x1530, 4, 0xa98, 2, 0xbe4, 2, 0xa98, 2, 0xd59, 2, 0x11d1, 2,
+            0xd59, 2, 0x1530, 4, 0xa98, 2, 0x970, 2, 0x8e8, 2, 0x970, 2, 0x8e8, 2, 0xa98, 2,
+            0x970, 2, 0xa98, 2, 0x970, 2, 0xbe4, 2, 0xa98, 2, 0xbe4, 2, 0xd59, 2, 0xbe4, 2,
+            0xa98, 4, 0x7d64
+    };
 
-    int dirge[]={
-      0x7d00, 2,0x11d1, 6,0x11d1, 4,0x11d1, 2,0x11d1, 6, 0xefb, 4, 0xfdf, 2,
-       0xfdf, 4,0x11d1, 2,0x11d1, 4,0x12e0, 2,0x11d1,12,0x7d00,16,0x7d00,16,
-      0x7d00,16,0x7d00,16,0x7d00,16,0x7d00,16,0x7d00,16,0x7d00,16,0x7d00,16,
-      0x7d00,16,0x7d00,16,0x7d00,16,0x7d64};
-    */
+    int[] dirge = {
+            0x7d00, 2, 0x11d1, 6, 0x11d1, 4, 0x11d1, 2, 0x11d1, 6, 0xefb, 4, 0xfdf, 2,
+            0xfdf, 4, 0x11d1, 2, 0x11d1, 4, 0x12e0, 2, 0x11d1, 12, 0x7d00, 16, 0x7d00, 16,
+            0x7d00, 16, 0x7d00, 16, 0x7d00, 16, 0x7d00, 16, 0x7d00, 16, 0x7d00, 16,
+            0x7d00, 16, 0x7d00, 16, 0x7d00, 16, 0x7d64
+    };
+
     boolean soundt0flag = false;
-
     boolean int8flag = false;
 
     Sound(Digger d) {
         dig = d;
     }
 
+    // --- Hardware emulation bridges ---
+
+    private void pushToEngine() {
+        if (engine != null) {
+            engine.updateT0Val(t0val);
+            engine.updateT2Val(t2val);
+            engine.updateSpkrMode(spkrmode);
+            engine.updatePulseWidth(pulsewidth);
+        }
+    }
+
+    // --- Initialization / shutdown ---
+
     void initsound() {
-        System.out.println("Sound initsound");
-//  settimer2(0x20);
-//  setspkrt2();
-//  settimer0(0);
         wavetype = 2;
         t0val = 12000;
         musvol = 8;
@@ -132,20 +171,31 @@ class Sound {
         sndflag = true;
         spkrmode = 0;
         int8flag = false;
+        musicplaying = false;
         setsoundt2();
         soundstop();
         startint8();
-        timerrate = 0x4000;
-//  timer0(0x4000);
+
+        // Start the Java Sound engine
+        engine = new SoundEngine(this);
+        boolean ok = engine.start();
+        if (!ok) {
+            System.err.println("Sound: failed to initialize audio output");
+            engine = null;
+        }
     }
 
     void killsound() {
-        System.out.println("Sound killsound");
-        // added by me...
+        if (engine != null) {
+            engine.stop();
+            engine = null;
+        }
+        stopint8();
     }
 
+    // --- Music ---
+
     void music(int tune) {
-        System.out.println("Sound music " + tune);
         tuneno = tune;
         musicp = 0;
         noteduration = 0;
@@ -170,6 +220,7 @@ class Sound {
                 musicsustainlevel = 25;
                 musicdecayrate = 5;
                 musicreleaserate = 1;
+                break;
         }
         musicplaying = true;
         if (tune == 2)
@@ -177,43 +228,41 @@ class Sound {
     }
 
     void musicoff() {
-        System.out.println("Sound music off");
         musicplaying = false;
         musicp = 0;
     }
 
     void musicupdate() {
-        System.out.println("Sound music update. musicplaying:"+musicplaying);
         if (!musicplaying)
             return;
-        if (noteduration != 0)
+        if (noteduration != 0) {
             noteduration--;
-        else {
+        } else {
             musicstage = musicn = 0;
             switch (tuneno) {
                 case 0:
-//		noteduration=bonusjingle[musicp+1]*3;
+                    noteduration = bonusjingle[musicp + 1] * 3;
                     musicnotewidth = noteduration - 3;
-//		notevalue=bonusjingle[musicp];
+                    notevalue = bonusjingle[musicp];
                     musicp += 2;
-//		if (bonusjingle[musicp]==0x7d64)
-//		  musicp=0;
+                    if (bonusjingle[musicp] == 0x7d64)
+                        musicp = 0;
                     break;
                 case 1:
-//		noteduration=backgjingle[musicp+1]*6;
+                    noteduration = backgjingle[musicp + 1] * 6;
                     musicnotewidth = 12;
-//		notevalue=backgjingle[musicp];
+                    notevalue = backgjingle[musicp];
                     musicp += 2;
-//		if (backgjingle[musicp]==0x7d64)
-//		  musicp=0;
+                    if (backgjingle[musicp] == 0x7d64)
+                        musicp = 0;
                     break;
                 case 2:
-//		noteduration=dirge[musicp+1]*10;
+                    noteduration = dirge[musicp + 1] * 10;
                     musicnotewidth = noteduration - 10;
-//		notevalue=dirge[musicp];
+                    notevalue = dirge[musicp];
                     musicp += 2;
-//		if (dirge[musicp]==0x7d64)
-//		  musicp=0;
+                    if (dirge[musicp] == 0x7d64)
+                        musicp = 0;
                     break;
             }
         }
@@ -246,81 +295,67 @@ class Sound {
                 musvol -= musicreleaserate;
         }
         if (musvol == 1)
-            t0val = 0x7d00;
+            t0val = SILENCE_T0VAL;
     }
 
-    void s0fillbuffer() {
-    }
-
-    void s0killsound() {
-        setsoundt2();
-//  timer2(40);
-        stopint8();
-    }
-
-    void s0setupsound() {
-        startint8();
-    }
+    // --- Sound mode / timer setup ---
 
     void setsoundmode() {
-        System.out.println("Sound setsoundmode");
         spkrmode = wavetype;
         if (!soundt0flag && sndflag) {
             soundt0flag = true;
-//	setspkrt2();
         }
     }
 
     void setsoundt2() {
-        System.out.println("Sound setsoundt2");
         if (soundt0flag) {
             spkrmode = 0;
             soundt0flag = false;
-//	setspkrt2();
         }
     }
 
     void sett0() {
-        System.out.println("Sound sett0");
         if (sndflag) {
-//	timer2(t2val);
             if (t0val < 1000 && (wavetype == 1 || wavetype == 2))
                 t0val = 1000;
-//	timer0(t0val);
-            timerrate = t0val;
-            if (musvol < 1)
-                musvol = 1;
-            if (musvol > 50)
-                musvol = 50;
+            if (musvol < 1) musvol = 1;
+            if (musvol > 50) musvol = 50;
             pulsewidth = musvol * volume;
             setsoundmode();
         }
     }
 
     void sett2val(int t2v) {
-        System.out.println("Sound sett2val");
-//  if (sndflag)
-//	timer2(t2v);
+        t2val = t2v;
     }
 
     void setupsound() {
-        System.out.println("Sound setupsound");
-        // added by me..
+        // Re-initialize sound engine after killsound()
+        // (called from Scores after game over / high score entry)
+        if (engine == null) {
+            sndflag = true;
+            startint8();
+            engine = new SoundEngine(this);
+            boolean ok = engine.start();
+            if (!ok) {
+                System.err.println("Sound: failed to reinitialize audio output");
+                engine = null;
+            }
+        }
     }
 
+    // --- Sound effects: 1-Up ---
+
     void sound1up() {
-        System.out.println("Sound sound1up");
         sound1upduration = 96;
         sound1upflag = true;
     }
 
     void sound1upoff() {
-        //System.out.println("Sound sound1upoff");
         sound1upflag = false;
     }
 
     void sound1upupdate() {
-        System.out.println("Sound sound1upupdate");
         if (sound1upflag) {
             if ((sound1upduration / 3) % 2 != 0)
                 t2val = (sound1upduration << 2) + 600;
@@ -330,19 +365,18 @@ class Sound {
         }
     }
 
+    // --- Sound effects: Bonus ---
+
     void soundbonus() {
-        System.out.println("Sound soundbonus");
         soundbonusflag = true;
     }
 
     void soundbonusoff() {
-        //System.out.println("Sound soundbonusoff");
         soundbonusflag = false;
         soundbonusn = 0;
     }
 
     void soundbonusupdate() {
-        System.out.println("Sound soundbonusupdate");
         if (soundbonusflag) {
             soundbonusn++;
             if (soundbonusn > 15)
@@ -354,8 +388,9 @@ class Sound {
         }
     }
 
+    // --- Sound effects: Break ---
+
     void soundbreak() {
-        System.out.println("Sound soundbreak");
         soundbreakduration = 3;
         if (soundbreakvalue < 15000)
             soundbreakvalue = 15000;
@@ -363,13 +398,10 @@ class Sound {
     }
 
     void soundbreakoff() {
-        System.out.println("Sound soundbreakoff");
-
         soundbreakflag = false;
     }
 
     void soundbreakupdate() {
-        System.out.println("Sound soundbreakupdate");
         if (soundbreakflag)
             if (soundbreakduration != 0) {
                 soundbreakduration--;
@@ -378,20 +410,19 @@ class Sound {
                 soundbreakflag = false;
     }
 
+    // --- Sound effects: Digger death ---
+
     void soundddie() {
-        System.out.println("Sound soundddie");
         soundddien = 0;
         soundddievalue = 20000;
         soundddieflag = true;
     }
 
     void soundddieoff() {
-        System.out.println("Sound soundddieoff");
         soundddieflag = false;
     }
 
     void soundddieupdate() {
-        System.out.println("Sound soundddieupdate");
         if (soundddieflag) {
             soundddien++;
             if (soundddien == 1)
@@ -406,8 +437,9 @@ class Sound {
         }
     }
 
+    // --- Sound effects: Eat monster ---
+
     void soundeatm() {
-        System.out.println("Sound soundeatm");
         soundeatmduration = 20;
         soundeatmn = 3;
         soundeatmvalue = 2000;
@@ -415,12 +447,10 @@ class Sound {
     }
 
     void soundeatmoff() {
-        System.out.println("Sound soundeatmoff");
         soundeatmflag = false;
     }
 
     void soundeatmupdate() {
-        System.out.println("Sound soundeatmupdate");
         if (soundeatmflag)
             if (soundeatmn != 0) {
                 if (soundeatmduration != 0) {
@@ -439,55 +469,37 @@ class Sound {
                 soundeatmflag = false;
     }
 
+    // --- Sound effects: Emerald monster ---
+
     void soundem() {
-        System.out.println("Sound soundem");
         soundemflag = true;
     }
 
     void soundemerald(int emocttime) {
-        System.out.println("Sound soundemerald "+emocttime);
         if (emocttime != 0) {
             switch (emerfreq) {
-                case 0x8e8:
-                    emerfreq = 0x7f0;
-                    break;
-                case 0x7f0:
-                    emerfreq = 0x712;
-                    break;
-                case 0x712:
-                    emerfreq = 0x6ac;
-                    break;
-                case 0x6ac:
-                    emerfreq = 0x5f2;
-                    break;
-                case 0x5f2:
-                    emerfreq = 0x54c;
-                    break;
-                case 0x54c:
-                    emerfreq = 0x4b8;
-                    break;
-                case 0x4b8:
-                    emerfreq = 0x474;
-                    dig.scores.scoreoctave();
-                    break;
-                case 0x474:
-                    emerfreq = 0x8e8;
+                case 0x8e8: emerfreq = 0x7f0; break;
+                case 0x7f0: emerfreq = 0x712; break;
+                case 0x712: emerfreq = 0x6ac; break;
+                case 0x6ac: emerfreq = 0x5f2; break;
+                case 0x5f2: emerfreq = 0x54c; break;
+                case 0x54c: emerfreq = 0x4b8; break;
+                case 0x4b8: emerfreq = 0x474; dig.scores.scoreoctave(); break;
+                case 0x474: emerfreq = 0x8e8; break;
             }
-        } else
+        } else {
             emerfreq = 0x8e8;
+        }
         soundemeraldduration = 7;
         soundemeraldn = 0;
         soundemeraldflag = true;
     }
 
     void soundemeraldoff() {
-        System.out.println("Sound soundemeraldoff");
-
         soundemeraldflag = false;
     }
 
     void soundemeraldupdate() {
-        System.out.println("Sound soundemeraldupdate");;
         if (soundemeraldflag)
             if (soundemeraldduration != 0) {
                 if (soundemeraldn == 0 || soundemeraldn == 1)
@@ -502,20 +514,19 @@ class Sound {
     }
 
     void soundemoff() {
-        System.out.println("Sound soundemoff");
         soundemflag = false;
     }
 
     void soundemupdate() {
-        System.out.println("Sound soundemupdate");
         if (soundemflag) {
             t2val = 1000;
             soundemoff();
         }
     }
 
+    // --- Sound effects: Explode ---
+
     void soundexplode() {
-        System.out.println("Sound soundexplode");
         soundexplodevalue = 1500;
         soundexplodeduration = 10;
         soundexplodeflag = true;
@@ -523,12 +534,10 @@ class Sound {
     }
 
     void soundexplodeoff() {
-        System.out.println("Sound soundexplodeoff");
         soundexplodeflag = false;
     }
 
     void soundexplodeupdate() {
-        System.out.println("Sound soundexplodeupdate");
         if (soundexplodeflag)
             if (soundexplodeduration != 0) {
                 soundexplodevalue = t2val = soundexplodevalue - (soundexplodevalue >> 3);
@@ -537,20 +546,19 @@ class Sound {
                 soundexplodeflag = false;
     }
 
+    // --- Sound effects: Fall ---
+
     void soundfall() {
-        System.out.println("Sound soundfall");
         soundfallvalue = 1000;
         soundfallflag = true;
     }
 
     void soundfalloff() {
-       // System.out.println("Sound soundfalloff");
         soundfallflag = false;
         soundfalln = 0;
     }
 
     void soundfallupdate() {
-        System.out.println("Sound soundfallupdate");
         if (soundfallflag)
             if (soundfalln < 1) {
                 soundfalln++;
@@ -566,20 +574,19 @@ class Sound {
             }
     }
 
+    // --- Sound effects: Fire ---
+
     void soundfire() {
-        System.out.println("Sound soundfire");
         soundfirevalue = 500;
         soundfireflag = true;
     }
 
     void soundfireoff() {
-        System.out.println("Sound soundfireoff");
         soundfireflag = false;
         soundfiren = 0;
     }
 
     void soundfireupdate() {
-        System.out.println("Sound soundfireupdate");
         if (soundfireflag) {
             if (soundfiren == 1) {
                 soundfiren = 0;
@@ -592,8 +599,9 @@ class Sound {
         }
     }
 
+    // --- Sound effects: Gold ---
+
     void soundgold() {
-        System.out.println("Sound soundgold");
         soundgoldvalue1 = 500;
         soundgoldvalue2 = 4000;
         soundgoldduration = 30;
@@ -602,12 +610,10 @@ class Sound {
     }
 
     void soundgoldoff() {
-        System.out.println("Sound soundgoldoff");
         soundgoldflag = false;
     }
 
     void soundgoldupdate() {
-        System.out.println("Sound soundgoldupdate");
         if (soundgoldflag) {
             if (soundgoldduration != 0)
                 soundgoldduration--;
@@ -625,18 +631,32 @@ class Sound {
         }
     }
 
+    // --- Main sound interrupt handler (replaces hardware Int 8) ---
+
     void soundint() {
+        if (soundlevdoneflag) {
+            // soundlevdone() drives timerclock and audio itself
+            return;
+        }
         timerclock++;
         if (soundflag && !sndflag)
-            sndflag = musicflag = true;
+            sndflag = true;
         if (!soundflag && sndflag) {
             sndflag = false;
-//	timer2(40);
             setsoundt2();
+            // Silence the engine immediately when all sound is toggled off
+            if (engine != null) {
+                engine.updateT0Val(SILENCE_T0VAL);
+                engine.updateT2Val(DEFAULT_T2VAL);
+                engine.updateSpkrMode(0);
+            }
+        }
+        if (!musicflag && musicplaying) {
+            musicoff();
         }
         if (sndflag && !soundpausedflag) {
-            t0val = 0x7d00;
-            t2val = 40;
+            t0val = SILENCE_T0VAL;
+            t2val = DEFAULT_T2VAL;
             if (musicflag)
                 musicupdate();
             soundemeraldupdate();
@@ -651,38 +671,43 @@ class Sound {
             soundfallupdate();
             sound1upupdate();
             soundbonusupdate();
-            if (t0val == 0x7d00 || t2val != 40)
+            if (t0val == SILENCE_T0VAL || t2val != DEFAULT_T2VAL)
                 setsoundt2();
             else {
                 setsoundmode();
                 sett0();
             }
             sett2val(t2val);
+            pushToEngine();
         }
     }
 
+    // --- Level done ---
+
     void soundlevdone() {
-        System.out.println("Sound soundlevdone");
-        try {
-            Thread.sleep(1000);
-        } catch (Exception e) {
+        soundstop();
+        nljpointer = 0;
+        nljnoteduration = 20;
+        soundlevdoneflag = true;
+        while (soundlevdoneflag) {
+            // timerclock is incremented by soundint() in the engine thread;
+            // drive it ourselves since soundint() skips updates while
+            // soundlevdoneflag is true
+            int prev = timerclock;
+            timerclock++;
+            soundlevdoneupdate();
+            // Small sleep to match original timing (~14ms per tick at 73Hz)
+            try {
+                Thread.sleep(14);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
         }
-/*  int timer=0;
-  soundstop();
-  nljpointer=0;
-  nljnoteduration=20;
-  soundlevdoneflag=soundpausedflag=true;
-  while (soundlevdoneflag) {
-	if (timerclock==timer)
-	  continue;
-	soundlevdoneupdate();
-	timer=timerclock;
-  } */
     }
 
     void soundlevdoneoff() {
-        System.out.println("Sound soundlevdoneoff");
-        soundlevdoneflag = soundpausedflag = false;
+        soundlevdoneflag = false;
     }
 
     void soundlevdoneupdate() {
@@ -694,6 +719,7 @@ class Sound {
             setsoundmode();
             sett0();
             sett2val(t2val);
+            pushToEngine();
             if (nljnoteduration > 0)
                 nljnoteduration--;
             else {
@@ -703,27 +729,29 @@ class Sound {
                     soundlevdoneoff();
             }
         } else {
-//	olddelay(100);
             soundlevdoneflag = false;
         }
     }
 
-    void soundoff() {
-        // phony
-    }
+    // --- Pause ---
 
     void soundpause() {
-        System.out.println("Sound soundpause");
         soundpausedflag = true;
+        // Silence the engine immediately so the current tone doesn't hang
+        if (engine != null) {
+            engine.updateT0Val(SILENCE_T0VAL);
+            engine.updateT2Val(DEFAULT_T2VAL);
+            engine.updateSpkrMode(0);
+        }
     }
 
     void soundpauseoff() {
-    //    System.out.println("Sound soundpauseoff");
         soundpausedflag = false;
     }
 
+    // --- Stop all sounds ---
+
     void soundstop() {
-        System.out.println("Sound soundstop");
         soundfalloff();
         soundwobbleoff();
         soundfireoff();
@@ -739,56 +767,42 @@ class Sound {
         sound1upoff();
     }
 
+    // --- Sound effects: Wobble ---
+
     void soundwobble() {
-        System.out.println("Sound soundwobble");
         soundwobbleflag = true;
     }
 
     void soundwobbleoff() {
-       // System.out.println("Sound soundwobbleoff");
         soundwobbleflag = false;
         soundwobblen = 0;
     }
 
     void soundwobbleupdate() {
-        System.out.println("Sound soundwobbleupdate");
         if (soundwobbleflag) {
             soundwobblen++;
             if (soundwobblen > 63)
                 soundwobblen = 0;
             switch (soundwobblen) {
-                case 0:
-                    t2val = 0x7d0;
-                    break;
-                case 16:
-                case 48:
-                    t2val = 0x9c4;
-                    break;
-                case 32:
-                    t2val = 0xbb8;
-                    break;
+                case 0:  t2val = 0x7d0; break;
+                case 16: case 48: t2val = 0x9c4; break;
+                case 32: t2val = 0xbb8; break;
             }
         }
     }
 
+    // --- Int 8 emulation (timer interrupt) ---
+
     void startint8() {
-        System.out.println("Sound startint8");
         if (!int8flag) {
-//	initint8();
-            timerrate = 0x4000;
-//	timer0(0x4000);
             int8flag = true;
         }
     }
 
     void stopint8() {
-        System.out.println("Sound stopint8");
-//  timer0(0);
         if (int8flag) {
-//	restoreint8();
             int8flag = false;
         }
-        sett2val(40);
-//  setspkrt2();
+        sett2val(DEFAULT_T2VAL);
     }
 }
