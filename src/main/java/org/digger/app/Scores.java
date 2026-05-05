@@ -59,7 +59,7 @@ class Scores implements Runnable {
             if (score1 >= nextbs1) {
                 if (dig.main.getlives(1) < 5) {
                     dig.main.addlife(1);
-                    dig.drawing.drawlives();
+                    dig.drawing.drawLives();
                 }
                 nextbs1 += bonusscore;
             }
@@ -74,7 +74,7 @@ class Scores implements Runnable {
             if (score2 > nextbs2) {   /* Player 2 doesn't get the life until >20,000 ! */
                 if (dig.main.getlives(2) < 5) {
                     dig.main.addlife(2);
-                    dig.drawing.drawlives();
+                    dig.drawing.drawLives();
                 }
                 nextbs2 += bonusscore;
             }
@@ -86,8 +86,8 @@ class Scores implements Runnable {
 
     void drawscores() {
         writenum(score1, 0, 0, 6, 3);
-        if (dig.main.nplayers == 2)
-            if (score2 < 100000l)
+        if (dig.main.numPlayers == 2)
+            if (score2 < 100000L)
                 writenum(score2, 236, 0, 6, 3);
             else
                 writenum(score2, 248, 0, 6, 3);
@@ -103,13 +103,12 @@ class Scores implements Runnable {
         if (scoret > scorehigh[11]) {
             dig.pc.gclear();
             drawscores();
-            dig.main.pldispbuf = "PLAYER ";
+            dig.main.playerDisplayBuffer = "PLAYER ";
             if (dig.main.getcplayer() == 0)
-                dig.main.pldispbuf += "1";
+                dig.main.playerDisplayBuffer += "1";
             else
-                dig.main.pldispbuf += "2";
-            dig.drawing.outtext(dig.main.pldispbuf, 108, 0, 2, true);
-            dig.drawing.outtext(" NEW HIGH SCORE ", 64, 40, 2, true);
+                dig.main.playerDisplayBuffer += "2";
+dig.drawing.drawText(dig.main.playerDisplayBuffer, 108, 0, 2, true);
             getinitials();
             _updatescores(_submit(scoreinit[0], (int) scoret));
             shufflehigh();
@@ -119,7 +118,7 @@ class Scores implements Runnable {
             savescores();
         } else {
             dig.main.cleartopline();
-            dig.drawing.outtext("GAME OVER", 104, 0, 3, true);
+dig.drawing.drawText("GAME OVER", 104, 0, 3, true);
             _updatescores(_submit("...", (int) scoret));
             dig.sound.killsound();
             for (j = 0; j < 20; j++) /* Number of times screen flashes * 2 */
@@ -135,7 +134,7 @@ class Scores implements Runnable {
                     dig.newframe();
                 }
             dig.sound.setupsound();
-            dig.drawing.outtext("         ", 104, 0, 3, true);
+dig.drawing.drawText("         ", 104, 0, 3, true);
             dig.sprite.setretr(true);
         }
     }
@@ -172,9 +171,9 @@ class Scores implements Runnable {
 
     void getinitials() {
         int k, i;
-        dig.drawing.outtext("ENTER YOUR", 100, 70, 3, true);
-        dig.drawing.outtext(" INITIALS", 100, 90, 3, true);
-        dig.drawing.outtext("_ _ _", 128, 130, 3, true);
+dig.drawing.drawText("ENTER YOUR", 100, 70, 3, true);
+        dig.drawing.drawText(" INITIALS", 100, 90, 3, true);
+        dig.drawing.drawText("_ _ _", 128, 130, 3, true);
         scoreinit[0] = "...";
         dig.sound.killsound();
         gotinitflag = false;
@@ -295,11 +294,11 @@ class Scores implements Runnable {
 
     void showtable() {
         int i, col;
-        dig.drawing.outtext("HIGH SCORES", 16, 25, 3);
+dig.drawing.drawText("HIGH SCORES", 16, 25, 3);
         col = 2;
         for (i = 1; i < 11; i++) {
             hsbuf = scoreinit[i] + "  " + numtostring(scorehigh[i + 1]);
-            dig.drawing.outtext(hsbuf, 16, 31 + 13 * i, col);
+dig.drawing.drawText(hsbuf, 16, 31 + 13 * i, col);
             col = 1;
         }
     }

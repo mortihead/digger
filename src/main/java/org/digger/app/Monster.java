@@ -1,99 +1,114 @@
 package org.digger.app;
 
+/**
+ * Manages monster entities: spawning, AI movement, collisions, and death.
+ * Up to 6 monsters can exist simultaneously (indices 0-5).
+ * Monster types: Nobbin (round, can't dig) and Hobbin (can dig through dirt).
+ */
 class Monster {
 
-    Digger dig;
+    private static final int MAX_MONSTERS = 6;
 
-    MonsterState[] mondat = {new MonsterState(), new MonsterState(), new MonsterState(), new MonsterState(), new MonsterState(), new MonsterState()};    // [6]
+    private final Digger dig;
 
-    int nextmonster = 0, totalmonsters = 0, maxmononscr = 0, nextmontime = 0, mongaptime = 0;
+    MonsterState[] mondat = new MonsterState[MAX_MONSTERS];
 
-    boolean unbonusflag = false, mongotgold = false;
+    int nextMonster = 0;       // next monster index to spawn
+    int totalMonsters = 0;     // total monsters for this level
+    int maxMonOnScreen = 0;    // max simultaneous monsters on screen
+    int nextMonTime = 0;       // spawn countdown
+    int monGapTime = 0;        // frames between spawns
+
+    boolean unbonusFlag = false;   // spawn bonus after all monsters
+    boolean monGotGold = false;    // monster ate gold this frame
 
     Monster(Digger d) {
         dig = d;
+        for (int i = 0; i < MAX_MONSTERS; i++)
+            mondat[i] = new MonsterState();
     }
 
+    /** Prevents two overlapping monsters from moving in the same direction. */
     void checkcoincide(int mon, int bits) {
-        int m, b;
-        for (m = 0, b = 256; m < 6; m++, b <<= 1)
-            if (((bits & b) != 0) && (mondat[mon].dir == mondat[m].dir) && (mondat[m].stime == 0) && (mondat[mon].stime == 0))
-                mondat[m].dir = dig.reversedir(mondat[m].dir);
+        for (int m = 0, b = 256; m < MAX_MONSTERS; m++, b <<= 1)
+            if (((bits & b) != 0) && (mondat[mon].direction == mondat[m].direction) &&
+                    (mondat[m].spawnTime == 0) && (mondat[mon].spawnTime == 0))
+                mondat[m].direction = dig.reversedir(mondat[m].direction);
     }
 
+    /** Makes downward-moving monsters reverse when a bag falls near them. */
     void checkmonscared(int h) {
-        int m;
-        for (m = 0; m < 6; m++)
-            if ((h == mondat[m].h) && (mondat[m].dir == 2))
-                mondat[m].dir = 6;
+        for (int m = 0; m < MAX_MONSTERS; m++)
+            if ((h == mondat[m].h) && (mondat[m].direction == 2))
+                mondat[m].direction = 6;
     }
 
+    /** Spawns a new monster at the top-right corner. */
     void createmonster() {
-        int i;
-        for (i = 0; i < 6; i++)
+        for (int i = 0; i < MAX_MONSTERS; i++)
             if (!mondat[i].flag) {
                 mondat[i].flag = true;
                 mondat[i].alive = true;
-                mondat[i].t = 0;
+                mondat[i].type = 0;
                 mondat[i].nob = true;
-                mondat[i].hnt = 0;
+                mondat[i].huntTime = 0;
                 mondat[i].h = 14;
                 mondat[i].v = 0;
                 mondat[i].x = 292;
                 mondat[i].y = 18;
                 mondat[i].xr = 0;
                 mondat[i].yr = 0;
-                mondat[i].dir = 4;
-                mondat[i].hdir = 4;
-                nextmonster++;
-                nextmontime = mongaptime;
-                mondat[i].stime = 5;
+                mondat[i].direction = 4;
+                mondat[i].horizontalDir = 4;
+                nextMonster++;
+                nextMonTime = monGapTime;
+                mondat[i].spawnTime = 5;
                 dig.sprite.movedrawspr(i + 8, mondat[i].x, mondat[i].y);
                 break;
             }
     }
 
+    /** Main per-frame update: spawning, movement AI, and death animation. */
     void domonsters() {
-        int i;
-        if (nextmontime > 0)
-            nextmontime--;
+        if (nextMonTime > 0)
+            nextMonTime--;
         else {
-            if (nextmonster < totalmonsters && nmononscr() < maxmononscr && dig.digonscr &&
+            if (nextMonster < totalMonsters && nmononscr() < maxMonOnScreen && dig.digonscr &&
                     !dig.bonusmode)
                 createmonster();
-            if (unbonusflag && nextmonster == totalmonsters && nextmontime == 0)
+            if (unbonusFlag && nextMonster == totalMonsters && nextMonTime == 0)
                 if (dig.digonscr) {
-                    unbonusflag = false;
+                    unbonusFlag = false;
                     dig.createbonus();
                 }
         }
-        for (i = 0; i < 6; i++)
+        for (int i = 0; i < MAX_MONSTERS; i++)
             if (mondat[i].flag) {
-                if (mondat[i].hnt > 10 - dig.main.levof10()) {
+                if (mondat[i].huntTime > 10 - dig.main.levof10()) {
                     if (mondat[i].nob) {
                         mondat[i].nob = false;
-                        mondat[i].hnt = 0;
+                        mondat[i].huntTime = 0;
                     }
                 }
                 if (mondat[i].alive)
-                    if (mondat[i].t == 0) {
+                    if (mondat[i].type == 0) {
                         monai(i);
                         if (dig.main.randno(15 - dig.main.levof10()) == 0 && mondat[i].nob)
                             monai(i);
                     } else
-                        mondat[i].t--;
+                        mondat[i].type--;
                 else
                     mondie(i);
             }
     }
 
     void erasemonsters() {
-        int i;
-        for (i = 0; i < 6; i++)
+        for (int i = 0; i < MAX_MONSTERS; i++)
             if (mondat[i].flag)
                 dig.sprite.erasespr(i + 8);
     }
 
+    /** Checks if a monster can move in the given direction from cell (x, y). */
     boolean fieldclear(int dir, int x, int y) {
         switch (dir) {
             case 0:
@@ -127,49 +142,41 @@ class Monster {
         return dig.drawing.field[y * 15 + x];
     }
 
+    /** Adds a delay penalty to monster movement timers. */
     void incmont(int n) {
-        int m;
         if (n > 6)
             n = 6;
-        for (m = 1; m < n; m++)
-            mondat[m].t++;
+        for (int m = 1; m < n; m++)
+            mondat[m].type++;
     }
 
     void incpenalties(int bits) {
-        int m, b;
-        for (m = 0, b = 256; m < 6; m++, b <<= 1) {
+        for (int m = 0, b = 256; m < MAX_MONSTERS; m++, b <<= 1) {
             if ((bits & b) != 0)
                 dig.main.incpenalty();
             b <<= 1;
         }
     }
 
+    /** Initializes monster parameters for the current level. */
     void initmonsters() {
-        int i;
-        for (i = 0; i < 6; i++)
+        for (int i = 0; i < MAX_MONSTERS; i++)
             mondat[i].flag = false;
-        nextmonster = 0;
-        mongaptime = 45 - (dig.main.levof10() << 1);
-        totalmonsters = dig.main.levof10() + 5;
+        nextMonster = 0;
+        monGapTime = 45 - (dig.main.levof10() << 1);
+        totalMonsters = dig.main.levof10() + 5;
         switch (dig.main.levof10()) {
             case 1:
-                maxmononscr = 3;
+                maxMonOnScreen = 3;
                 break;
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
-            case 7:
-                maxmononscr = 4;
+            case 2: case 3: case 4: case 5: case 6: case 7:
+                maxMonOnScreen = 4;
                 break;
-            case 8:
-            case 9:
-            case 10:
-                maxmononscr = 5;
+            case 8: case 9: case 10:
+                maxMonOnScreen = 5;
         }
-        nextmontime = 10;
-        unbonusflag = true;
+        nextMonTime = 10;
+        unbonusFlag = true;
     }
 
     void killmon(int mon) {
@@ -177,13 +184,14 @@ class Monster {
             mondat[mon].flag = mondat[mon].alive = false;
             dig.sprite.erasespr(mon + 8);
             if (dig.bonusmode)
-                totalmonsters++;
+                totalMonsters++;
         }
     }
 
+    /** Kills all monsters matching the bitmask. Returns the number killed. */
     int killmonsters(int bits) {
-        int m, b, n = 0;
-        for (m = 0, b = 256; m < 6; m++, b <<= 1)
+        int n = 0;
+        for (int m = 0, b = 256; m < MAX_MONSTERS; m++, b <<= 1)
             if ((bits & b) != 0) {
                 killmon(m);
                 n++;
@@ -191,6 +199,7 @@ class Monster {
         return n;
     }
 
+    /** Monster AI: decides direction and performs movement. */
     void monai(int mon) {
         int clbits, monox, monoy, dir, mdirp1, mdirp2, mdirp3, mdirp4, t;
         boolean push;
@@ -198,91 +207,44 @@ class Monster {
         monoy = mondat[mon].y;
         if (mondat[mon].xr == 0 && mondat[mon].yr == 0) {
 
-            /* If we are here the monster needs to know which way to turn next. */
-
-            /* Turn hobbin back into nobbin if it's had its time */
-
-            if (mondat[mon].hnt > 30 + (dig.main.levof10() << 1))
+            // Turn hobbin back into nobbin if hunt time exceeded
+            if (mondat[mon].huntTime > 30 + (dig.main.levof10() << 1))
                 if (!mondat[mon].nob) {
-                    mondat[mon].hnt = 0;
+                    mondat[mon].huntTime = 0;
                     mondat[mon].nob = true;
                 }
 
-            /* Set up monster direction properties to chase dig */
-
+            // Set up chase priorities based on digger's position
             if (Math.abs(dig.diggery - mondat[mon].y) > Math.abs(dig.diggerx - mondat[mon].x)) {
-                if (dig.diggery < mondat[mon].y) {
-                    mdirp1 = 2;
-                    mdirp4 = 6;
-                } else {
-                    mdirp1 = 6;
-                    mdirp4 = 2;
-                }
-                if (dig.diggerx < mondat[mon].x) {
-                    mdirp2 = 4;
-                    mdirp3 = 0;
-                } else {
-                    mdirp2 = 0;
-                    mdirp3 = 4;
-                }
+                mdirp1 = dig.diggery < mondat[mon].y ? 2 : 6;
+                mdirp4 = dig.diggery < mondat[mon].y ? 6 : 2;
+                mdirp2 = dig.diggerx < mondat[mon].x ? 4 : 0;
+                mdirp3 = dig.diggerx < mondat[mon].x ? 0 : 4;
             } else {
-                if (dig.diggerx < mondat[mon].x) {
-                    mdirp1 = 4;
-                    mdirp4 = 0;
-                } else {
-                    mdirp1 = 0;
-                    mdirp4 = 4;
-                }
-                if (dig.diggery < mondat[mon].y) {
-                    mdirp2 = 2;
-                    mdirp3 = 6;
-                } else {
-                    mdirp2 = 6;
-                    mdirp3 = 2;
-                }
+                mdirp1 = dig.diggerx < mondat[mon].x ? 4 : 0;
+                mdirp4 = dig.diggerx < mondat[mon].x ? 0 : 4;
+                mdirp2 = dig.diggery < mondat[mon].y ? 2 : 6;
+                mdirp3 = dig.diggery < mondat[mon].y ? 6 : 2;
             }
 
-            /* In bonus mode, run away from digger */
-
+            // In bonus mode, run away from digger
             if (dig.bonusmode) {
-                t = mdirp1;
-                mdirp1 = mdirp4;
-                mdirp4 = t;
-                t = mdirp2;
-                mdirp2 = mdirp3;
-                mdirp3 = t;
+                t = mdirp1; mdirp1 = mdirp4; mdirp4 = t;
+                t = mdirp2; mdirp2 = mdirp3; mdirp3 = t;
             }
 
-	/* Adjust priorities so that monsters don't reverse direction unless they
-	   really have to */
+            // Adjust priorities so monsters don't reverse unless necessary
+            dir = dig.reversedir(mondat[mon].direction);
+            if (dir == mdirp1) { mdirp1 = mdirp2; mdirp2 = mdirp3; mdirp3 = mdirp4; mdirp4 = dir; }
+            if (dir == mdirp2) { mdirp2 = mdirp3; mdirp3 = mdirp4; mdirp4 = dir; }
+            if (dir == mdirp3) { mdirp3 = mdirp4; mdirp4 = dir; }
 
-            dir = dig.reversedir(mondat[mon].dir);
-            if (dir == mdirp1) {
-                mdirp1 = mdirp2;
-                mdirp2 = mdirp3;
-                mdirp3 = mdirp4;
-                mdirp4 = dir;
-            }
-            if (dir == mdirp2) {
-                mdirp2 = mdirp3;
-                mdirp3 = mdirp4;
-                mdirp4 = dir;
-            }
-            if (dir == mdirp3) {
-                mdirp3 = mdirp4;
-                mdirp4 = dir;
-            }
-
-            /* Introduce a randno element on levels <6 : occasionally swap p1 and p3 */
-
+            // Random element on easier levels: occasionally swap p1 and p3
             if (dig.main.randno(dig.main.levof10() + 5) == 1 && dig.main.levof10() < 6) {
-                t = mdirp1;
-                mdirp1 = mdirp3;
-                mdirp3 = t;
+                t = mdirp1; mdirp1 = mdirp3; mdirp3 = t;
             }
 
-            /* Check field and find direction */
-
+            // Check field and find direction
             if (fieldclear(mdirp1, mondat[mon].h, mondat[mon].v))
                 dir = mdirp1;
             else if (fieldclear(mdirp2, mondat[mon].h, mondat[mon].v))
@@ -292,170 +254,153 @@ class Monster {
             else if (fieldclear(mdirp4, mondat[mon].h, mondat[mon].v))
                 dir = mdirp4;
 
-            /* Hobbins don't care about the field: they go where they want. */
-
+            // Hobbins ignore the field and go where they want
             if (!mondat[mon].nob)
                 dir = mdirp1;
 
-            /* Monsters take a time penalty for changing direction */
+            // Time penalty for changing direction
+            if (mondat[mon].direction != dir)
+                mondat[mon].type++;
 
-            if (mondat[mon].dir != dir)
-                mondat[mon].t++;
-
-            /* Save the new direction */
-
-            mondat[mon].dir = dir;
+            mondat[mon].direction = dir;
         }
 
-        /* If monster is about to go off edge of screen, stop it. */
+        // Prevent monster from going off-screen
+        if ((mondat[mon].x == 292 && mondat[mon].direction == 0) ||
+                (mondat[mon].x == 12 && mondat[mon].direction == 4) ||
+                (mondat[mon].y == 180 && mondat[mon].direction == 6) ||
+                (mondat[mon].y == 18 && mondat[mon].direction == 2))
+            mondat[mon].direction = -1;
 
-        if ((mondat[mon].x == 292 && mondat[mon].dir == 0) ||
-                (mondat[mon].x == 12 && mondat[mon].dir == 4) ||
-                (mondat[mon].y == 180 && mondat[mon].dir == 6) ||
-                (mondat[mon].y == 18 && mondat[mon].dir == 2))
-            mondat[mon].dir = -1;
+        // Update horizontal direction for hobbin
+        if (mondat[mon].direction == 4 || mondat[mon].direction == 0)
+            mondat[mon].horizontalDir = mondat[mon].direction;
 
-        /* Change hdir for hobbin */
-
-        if (mondat[mon].dir == 4 || mondat[mon].dir == 0)
-            mondat[mon].hdir = mondat[mon].dir;
-
-        /* Hobbins digger */
-
+        // Hobbins dig through dirt
         if (!mondat[mon].nob)
-            dig.drawing.eatfield(mondat[mon].x, mondat[mon].y, mondat[mon].dir);
+            dig.drawing.digTunnel(mondat[mon].x, mondat[mon].y, mondat[mon].direction);
 
-        /* (Draw new tunnels) and move monster */
-
-        switch (mondat[mon].dir) {
+        // Move monster and draw tunnel blobs for hobbins
+        switch (mondat[mon].direction) {
             case 0:
                 if (!mondat[mon].nob)
-                    dig.drawing.drawrightblob(mondat[mon].x, mondat[mon].y);
+                    dig.drawing.drawTunnelEdgeRight(mondat[mon].x, mondat[mon].y);
                 mondat[mon].x += 4;
                 break;
             case 4:
                 if (!mondat[mon].nob)
-                    dig.drawing.drawleftblob(mondat[mon].x, mondat[mon].y);
+                    dig.drawing.drawTunnelEdgeLeft(mondat[mon].x, mondat[mon].y);
                 mondat[mon].x -= 4;
                 break;
             case 2:
                 if (!mondat[mon].nob)
-                    dig.drawing.drawtopblob(mondat[mon].x, mondat[mon].y);
+                    dig.drawing.drawTunnelEdgeTop(mondat[mon].x, mondat[mon].y);
                 mondat[mon].y -= 3;
                 break;
             case 6:
                 if (!mondat[mon].nob)
-                    dig.drawing.drawbottomblob(mondat[mon].x, mondat[mon].y);
+                    dig.drawing.drawTunnelEdgeBottom(mondat[mon].x, mondat[mon].y);
                 mondat[mon].y += 3;
                 break;
         }
 
-        /* Hobbins can eat emeralds */
-
+        // Hobbins can eat emeralds
         if (!mondat[mon].nob)
-            dig.hitemerald((mondat[mon].x - 12) / 20, (mondat[mon].y - 18) / 18, (mondat[mon].x - 12) % 20, (mondat[mon].y - 18) % 18, mondat[mon].dir);
+            dig.hitemerald((mondat[mon].x - 12) / 20, (mondat[mon].y - 18) / 18,
+                    (mondat[mon].x - 12) % 20, (mondat[mon].y - 18) % 18, mondat[mon].direction);
 
-        /* If digger's gone, don't bother */
-
+        // If digger's gone, don't move
         if (!dig.digonscr) {
             mondat[mon].x = monox;
             mondat[mon].y = monoy;
         }
 
-        /* If monster's just started, don't move yet */
-
-        if (mondat[mon].stime != 0) {
-            mondat[mon].stime--;
+        // If monster just spawned, don't move yet
+        if (mondat[mon].spawnTime != 0) {
+            mondat[mon].spawnTime--;
             mondat[mon].x = monox;
             mondat[mon].y = monoy;
         }
 
-        /* Increase time counter for hobbin */
+        // Increase hunt counter for hobbin
+        if (!mondat[mon].nob && mondat[mon].huntTime < 100)
+            mondat[mon].huntTime++;
 
-        if (!mondat[mon].nob && mondat[mon].hnt < 100)
-            mondat[mon].hnt++;
-
-        /* Draw monster */
-
+        // Draw monster and check collisions
         push = true;
-        clbits = dig.drawing.drawmon(mon, mondat[mon].nob, mondat[mon].hdir, mondat[mon].x, mondat[mon].y);
+        clbits = dig.drawing.drawMonster(mon, mondat[mon].nob, mondat[mon].horizontalDir, mondat[mon].x, mondat[mon].y);
         dig.main.incpenalty();
 
-        /* Collision with another monster */
-
+        // Collision with another monster
         if ((clbits & 0x3f00) != 0) {
-            mondat[mon].t++; /* Time penalty */
-            checkcoincide(mon, clbits); /* Ensure both aren't moving in the same dir. */
+            mondat[mon].type++;
+            checkcoincide(mon, clbits);
             incpenalties(clbits);
         }
 
-        /* Check for collision with bag */
-
+        // Collision with bag
         if ((clbits & dig.bags.bagbits()) != 0) {
-            mondat[mon].t++; /* Time penalty */
-            mongotgold = false;
-            if (mondat[mon].dir == 4 || mondat[mon].dir == 0) { /* Horizontal push */
-                push = dig.bags.pushbags(mondat[mon].dir, clbits);
-                mondat[mon].t++; /* Time penalty */
-            } else if (!dig.bags.pushudbags(clbits)) /* Vertical push */
+            mondat[mon].type++;
+            monGotGold = false;
+            if (mondat[mon].direction == 4 || mondat[mon].direction == 0) {
+                push = dig.bags.pushbags(mondat[mon].direction, clbits);
+                mondat[mon].type++;
+            } else if (!dig.bags.pushudbags(clbits))
                 push = false;
-            if (mongotgold) /* No time penalty if monster eats gold */
-                mondat[mon].t = 0;
-            if (!mondat[mon].nob && mondat[mon].hnt > 1)
-                dig.bags.removebags(clbits); /* Hobbins eat bags */
+            if (monGotGold)
+                mondat[mon].type = 0;
+            if (!mondat[mon].nob && mondat[mon].huntTime > 1)
+                dig.bags.removebags(clbits);
         }
 
-        /* Increase hobbin cross counter */
-
+        // Increase hobbin cross counter
         if (mondat[mon].nob && ((clbits & 0x3f00) != 0) && dig.digonscr)
-            mondat[mon].hnt++;
+            mondat[mon].huntTime++;
 
-        /* See if bags push monster back */
-
+        // Bags push monster back
         if (!push) {
             mondat[mon].x = monox;
             mondat[mon].y = monoy;
-            dig.drawing.drawmon(mon, mondat[mon].nob, mondat[mon].hdir, mondat[mon].x, mondat[mon].y);
+            dig.drawing.drawMonster(mon, mondat[mon].nob, mondat[mon].horizontalDir, mondat[mon].x, mondat[mon].y);
             dig.main.incpenalty();
-            if (mondat[mon].nob) /* The other way to create hobbin: stuck on h-bag */
-                mondat[mon].hnt++;
-            if ((mondat[mon].dir == 2 || mondat[mon].dir == 6) && mondat[mon].nob)
-                mondat[mon].dir = dig.reversedir(mondat[mon].dir); /* If vertical, give up */
+            if (mondat[mon].nob)
+                mondat[mon].huntTime++;
+            if ((mondat[mon].direction == 2 || mondat[mon].direction == 6) && mondat[mon].nob)
+                mondat[mon].direction = dig.reversedir(mondat[mon].direction);
         }
 
-        /* Collision with digger */
-
+        // Collision with digger
         if (((clbits & 1) != 0) && dig.digonscr)
             if (dig.bonusmode) {
                 killmon(mon);
                 dig.scores.scoreeatm();
-                dig.sound.soundeatm(); /* Collision in bonus mode */
+                dig.sound.soundeatm();
             } else
-                dig.killdigger(3, 0); /* Kill digger */
+                dig.killdigger(3, 0);
 
-        /* Update co-ordinates */
-
+        // Update cell coordinates
         mondat[mon].h = (mondat[mon].x - 12) / 20;
         mondat[mon].v = (mondat[mon].y - 18) / 18;
         mondat[mon].xr = (mondat[mon].x - 12) % 20;
         mondat[mon].yr = (mondat[mon].y - 18) % 18;
     }
 
+    /** Monster death animation: crushed by bag or fading out. */
     void mondie(int mon) {
         switch (mondat[mon].death) {
             case 1:
                 if (dig.bags.bagy(mondat[mon].bag) + 6 > mondat[mon].y)
                     mondat[mon].y = dig.bags.bagy(mondat[mon].bag);
-                dig.drawing.drawmondie(mon, mondat[mon].nob, mondat[mon].hdir, mondat[mon].x, mondat[mon].y);
+                dig.drawing.drawMonsterDeath(mon, mondat[mon].nob, mondat[mon].horizontalDir, mondat[mon].x, mondat[mon].y);
                 dig.main.incpenalty();
                 if (dig.bags.getbagdir(mondat[mon].bag) == -1) {
-                    mondat[mon].dtime = 1;
+                    mondat[mon].deathTime = 1;
                     mondat[mon].death = 4;
                 }
                 break;
             case 4:
-                if (mondat[mon].dtime != 0)
-                    mondat[mon].dtime--;
+                if (mondat[mon].deathTime != 0)
+                    mondat[mon].deathTime--;
                 else {
                     killmon(mon);
                     dig.scores.scorekill();
@@ -464,16 +409,16 @@ class Monster {
     }
 
     void mongold() {
-        mongotgold = true;
+        monGotGold = true;
     }
 
     int monleft() {
-        return nmononscr() + totalmonsters - nextmonster;
+        return nmononscr() + totalMonsters - nextMonster;
     }
 
     int nmononscr() {
-        int i, n = 0;
-        for (i = 0; i < 6; i++)
+        int n = 0;
+        for (int i = 0; i < MAX_MONSTERS; i++)
             if (mondat[i].flag)
                 n++;
         return n;
@@ -486,8 +431,7 @@ class Monster {
     }
 
     void squashmonsters(int bag, int bits) {
-        int m, b;
-        for (m = 0, b = 256; m < 6; m++, b <<= 1)
+        for (int m = 0, b = 256; m < MAX_MONSTERS; m++, b <<= 1)
             if ((bits & b) != 0)
                 if (mondat[m].y >= dig.bags.bagy(bag))
                     squashmonster(m, 1, bag);

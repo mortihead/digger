@@ -202,7 +202,7 @@ public class Digger extends Frame implements Runnable {
 
     void createbonus() {
         bonusvisible = true;
-        drawing.drawbonus(292, 18);
+drawing.drawBonus(292, 18);
     }
 
     public void destroy() {
@@ -216,7 +216,7 @@ public class Digger extends Frame implements Runnable {
             case 1:
                 if (bags.bagy(deathbag) + 6 > diggery)
                     diggery = bags.bagy(deathbag) + 6;
-                drawing.drawdigger(15, diggerx, diggery, false);
+                drawing.drawDigger(15, diggerx, diggery, false);
                 main.incpenalty();
                 if (bags.getbagdir(deathbag) + 1 == 0) {
                     sound.soundddie();
@@ -233,7 +233,7 @@ public class Digger extends Frame implements Runnable {
                 }
                 if (deathani == 0)
                     sound.music(2);
-                clbits = drawing.drawdigger(14 - deathani, diggerx, diggery, false);
+                clbits = drawing.drawDigger(14 - deathani, diggerx, diggery, false);
                 main.incpenalty();
                 if (deathani == 0 && ((clbits & 0x3f00) != 0))
                     monster.killmonsters(clbits);
@@ -255,7 +255,7 @@ public class Digger extends Frame implements Runnable {
                 break;
             case 5:
                 if (deathani >= 0 && deathani <= 6) {
-                    drawing.drawdigger(15, diggerx, diggery - deatharc[deathani], false);
+                    drawing.drawDigger(15, diggerx, diggery - deatharc[deathani], false);
                     if (deathani == 6)
                         sound.musicoff();
                     main.incpenalty();
@@ -286,7 +286,7 @@ public class Digger extends Frame implements Runnable {
         if (diggervisible)
             if (digonscr)
                 if (digtime != 0) {
-                    drawing.drawdigger(digmdir, diggerx, diggery, notfiring && rechargetime == 0);
+                    drawing.drawDigger(digmdir, diggerx, diggery, notfiring && rechargetime == 0);
                     main.incpenalty();
                     digtime--;
                 } else
@@ -332,7 +332,7 @@ public class Digger extends Frame implements Runnable {
         for (x = 0; x < 15; x++)
             for (y = 0; y < 10; y++)
                 if ((emfield[y * 15 + x] & emmask) != 0)
-                    drawing.drawemerald(x * 20 + 12, y * 18 + 21);
+drawing.drawEmerald(x * 20 + 12, y * 18 + 21);
     }
 
     void drawexplosion() {
@@ -341,7 +341,7 @@ public class Digger extends Frame implements Runnable {
                 sound.soundexplode();
             case 2:
             case 3:
-                drawing.drawfire(firex, firey, expsn);
+                drawing.drawFire(firex, firey, expsn);
                 main.incpenalty();
                 expsn++;
                 break;
@@ -388,11 +388,11 @@ public class Digger extends Frame implements Runnable {
             r = ry;
         if ((emfield[y * 15 + x] & emmask) != 0) {
             if (r == embox[dir]) {
-                drawing.drawemerald(x * 20 + 12, y * 18 + 21);
+drawing.drawEmerald(x * 20 + 12, y * 18 + 21);
                 main.incpenalty();
             }
             if (r == embox[dir + 1]) {
-                drawing.eraseemerald(x * 20 + 12, y * 18 + 21);
+drawing.eraseEmerald(x * 20 + 12, y * 18 + 21);
                 main.incpenalty();
                 hit = true;
                 emfield[y * 15 + x] &= ~emmask;
@@ -550,7 +550,7 @@ public class Digger extends Frame implements Runnable {
     void killemerald(int x, int y) {
         if ((emfield[y * 15 + x + 15] & emmask) != 0) {
             emfield[y * 15 + x + 15] &= ~emmask;
-            drawing.eraseemerald(x * 20 + 12, (y + 1) * 18 + 21);
+drawing.eraseEmerald(x * 20 + 12, (y + 1) * 18 + 21);
         }
     }
 
@@ -638,13 +638,40 @@ public class Digger extends Frame implements Runnable {
             ddir = dir;
         else
             ddir = -1;
+        // Allow turn when aligned on the perpendicular axis
         if (diggerrx == 0 && (ddir == 2 || ddir == 6))
             digdir = digmdir = ddir;
         if (diggerry == 0 && (ddir == 4 || ddir == 0))
             digdir = digmdir = ddir;
+        // Requested perpendicular turn but not yet aligned on the perpendicular axis:
+        // snap to grid so the turn can happen immediately on the next frame.
+        if (ddir != -1 && ddir != digmdir) {
+            boolean wantsVertical = (ddir == 2 || ddir == 6);
+            boolean movingHorizontal = (digmdir == 0 || digmdir == 4);
+            boolean wantsHorizontal = (ddir == 4 || ddir == 0);
+            boolean movingVertical = (digmdir == 2 || digmdir == 6);
+            if (wantsVertical && movingHorizontal && diggerrx != 0) {
+                // Snap horizontally to the nearest grid line
+                int cellX = (diggerx - 12) / 20;
+                int nearestX = (diggerrx > 10) ? (cellX + 1) * 20 + 12 : cellX * 20 + 12;
+                diggerx = nearestX;
+                diggerrx = 0;
+                digdir = digmdir = ddir;
+            }
+            if (wantsHorizontal && movingVertical && diggerry != 0) {
+                // Snap vertically to the nearest grid line
+                int cellY = (diggery - 18) / 18;
+                int nearestY = (diggerry > 9) ? (cellY + 1) * 18 + 18 : cellY * 18 + 18;
+                diggery = nearestY;
+                diggerry = 0;
+                digdir = digmdir = ddir;
+            }
+        }
         if (dir == -1)
             digmdir = -1;
-        else
+        else if (digmdir == -1 && ddir == -1)
+            digmdir = -1;
+        else if (digmdir == -1)
             digmdir = digdir;
         if ((diggerx == 292 && digmdir == 0) || (diggerx == 12 && digmdir == 4) ||
                 (diggery == 180 && digmdir == 6) || (diggery == 18 && digmdir == 2))
@@ -652,22 +679,22 @@ public class Digger extends Frame implements Runnable {
         diggerox = diggerx;
         diggeroy = diggery;
         if (digmdir != -1)
-            drawing.eatfield(diggerox, diggeroy, digmdir);
+drawing.digTunnel(diggerox, diggeroy, digmdir);
         switch (digmdir) {
             case 0:
-                drawing.drawrightblob(diggerx, diggery);
+                drawing.drawTunnelEdgeRight(diggerx, diggery);
                 diggerx += 4;
                 break;
             case 4:
-                drawing.drawleftblob(diggerx, diggery);
+                drawing.drawTunnelEdgeLeft(diggerx, diggery);
                 diggerx -= 4;
                 break;
             case 2:
-                drawing.drawtopblob(diggerx, diggery);
+                drawing.drawTunnelEdgeTop(diggerx, diggery);
                 diggery -= 3;
                 break;
             case 6:
-                drawing.drawbottomblob(diggerx, diggery);
+                drawing.drawTunnelEdgeBottom(diggerx, diggery);
                 diggery += 3;
                 break;
         }
@@ -678,7 +705,7 @@ public class Digger extends Frame implements Runnable {
             sound.soundemerald(emocttime);
             emocttime = 9;
         }
-        clbits = drawing.drawdigger(digdir, diggerx, diggery, notfiring && rechargetime == 0);
+        clbits = drawing.drawDigger(digdir, diggerx, diggery, notfiring && rechargetime == 0);
         main.incpenalty();
         if ((bags.bagbits() & clbits) != 0) {
             if (digmdir == 0 || digmdir == 4) {
@@ -689,7 +716,7 @@ public class Digger extends Frame implements Runnable {
             if (!push) { /* Strange, push not completely defined */
                 diggerx = diggerox;
                 diggery = diggeroy;
-                drawing.drawdigger(digmdir, diggerx, diggery, notfiring && rechargetime == 0);
+                drawing.drawDigger(digmdir, diggerx, diggery, notfiring && rechargetime == 0);
                 main.incpenalty();
                 digdir = reversedir(digmdir);
             }
@@ -764,7 +791,7 @@ public class Digger extends Frame implements Runnable {
                             pc.ggetpix(firex, firey + 6)) & 3;
                     break;
             }
-            clbits = drawing.drawfire(firex, firey, 0);
+            clbits = drawing.drawFire(firex, firey, 0);
             main.incpenalty();
             if ((clbits & 0x3f00) != 0)
                 for (mon = 0, b = 256; mon < 6; mon++, b <<= 1)
@@ -782,7 +809,7 @@ public class Digger extends Frame implements Runnable {
                     else if (pix != 0 && clbits == 0) {
                         expsn = 1;
                         firex -= 8;
-                        drawing.drawfire(firex, firey, 0);
+                        drawing.drawFire(firex, firey, 0);
                     }
                     break;
                 case 4:
@@ -791,7 +818,7 @@ public class Digger extends Frame implements Runnable {
                     else if (pix != 0 && clbits == 0) {
                         expsn = 1;
                         firex += 8;
-                        drawing.drawfire(firex, firey, 0);
+                        drawing.drawFire(firex, firey, 0);
                     }
                     break;
                 case 2:
@@ -800,7 +827,7 @@ public class Digger extends Frame implements Runnable {
                     else if (pix != 0 && clbits == 0) {
                         expsn = 1;
                         firey += 7;
-                        drawing.drawfire(firex, firey, 0);
+                        drawing.drawFire(firex, firey, 0);
                     }
                     break;
                 case 6:
@@ -809,7 +836,7 @@ public class Digger extends Frame implements Runnable {
                     else if (pix != 0 && clbits == 0) {
                         expsn = 1;
                         firey -= 7;
-                        drawing.drawfire(firex, firey, 0);
+                        drawing.drawFire(firex, firey, 0);
                     }
             }
         }

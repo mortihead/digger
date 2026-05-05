@@ -111,11 +111,22 @@ class Input {
         akeypressed = key;
     }
 
+    /**
+     * Reads current direction from input state.
+     * Direction is preserved while the key is held,
+     * even if the digger can't turn yet (grid alignment).
+     */
     void readdir() {
-        keydir = staticdir;
         if (dynamicdir != -1)
             keydir = dynamicdir;
-        staticdir = -1;
+        else {
+            // No new key pressed — keep last held direction
+            if (uppressed) keydir = 2;
+            else if (downpressed) keydir = 6;
+            else if (leftpressed) keydir = 4;
+            else if (rightpressed) keydir = 0;
+            else keydir = -1;
+        }
         firepflag = f1pressed || firepressed;
         firepressed = false;
     }

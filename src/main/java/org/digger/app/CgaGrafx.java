@@ -2,7 +2,7 @@ package org.digger.app;
 
 // original cga graphics
 
-abstract class cgagrafx {
+abstract class CgaGrafx {
 
     static short cgazero60[] = {
             0x00, 0x00, 0x00, 0x00,

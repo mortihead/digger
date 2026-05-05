@@ -1,40 +1,58 @@
 package org.digger.app;
+
+/**
+ * Manages gold bags: placement, falling, wobbling, pushing, and gold collection.
+ * Up to 7 bags can exist simultaneously (indices 1-7).
+ */
 class Bags {
 
-    Digger dig;
+    private static final int MAX_BAGS = 8;      // array size (index 0 unused)
+    private static final int GOLD_BASE_TIME = 150;
 
-    BagState[] bagdat1 = {new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState()},
-            bagdat2 = {new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState()},
-            bagdat = {new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState(), new BagState()};
+    private final Digger dig;
 
-    int pushcount = 0, goldtime = 0;
+    /** Bag state snapshots for 2-player mode (player 1 and player 2). */
+    BagState[] bagdat1 = new BagState[MAX_BAGS],
+            bagdat2 = new BagState[MAX_BAGS],
+            bagdat = new BagState[MAX_BAGS];
 
-    int wblanim[] = {2, 0, 1, 0};    // [4]
+    int pushCount = 0;
+    int goldTime = 0;    // frames before gold disappears after bag breaks
+
+    /** Wobble animation frame indices: still, left, still, right. */
+    private final int[] wobbleAnim = {2, 0, 1, 0};
 
     Bags(Digger d) {
         dig = d;
+        for (int i = 0; i < MAX_BAGS; i++) {
+            bagdat[i] = new BagState();
+            bagdat1[i] = new BagState();
+            bagdat2[i] = new BagState();
+        }
     }
 
+    /** Returns a bitmask of which bags exist (bits 1-7). */
     int bagbits() {
-        int bag, b, bags = 0;
-        for (bag = 1, b = 2; bag < 8; bag++, b <<= 1)
+        int bags = 0;
+        for (int bag = 1, bit = 2; bag < MAX_BAGS; bag++, bit <<= 1)
             if (bagdat[bag].exist)
-                bags |= b;
+                bags |= bit;
         return bags;
     }
 
+    /** Called when a falling bag hits the ground. */
     void baghitground(int bag) {
-        int bn, b, clbits;
-        if (bagdat[bag].dir == 6 && bagdat[bag].fallh > 1)
-            bagdat[bag].gt = 1;
+        int clbits;
+        if (bagdat[bag].direction == 6 && bagdat[bag].fallHeight > 1)
+            bagdat[bag].goldTime = 1;
         else
-            bagdat[bag].fallh = 0;
-        bagdat[bag].dir = -1;
-        bagdat[bag].wt = 15;
+            bagdat[bag].fallHeight = 0;
+        bagdat[bag].direction = -1;
+        bagdat[bag].wobbleTime = 15;
         bagdat[bag].wobbling = false;
-        clbits = dig.drawing.drawgold(bag, 0, bagdat[bag].x, bagdat[bag].y);
+        clbits = dig.drawing.drawGold(bag, 0, bagdat[bag].x, bagdat[bag].y);
         dig.main.incpenalty();
-        for (bn = 1, b = 2; bn < 8; bn++, b <<= 1)
+        for (int bn = 1, b = 2; bn < MAX_BAGS; bn++, b <<= 1)
             if ((b & clbits) != 0)
                 removebag(bn);
     }
@@ -43,13 +61,13 @@ class Bags {
         return bagdat[bag].y;
     }
 
+    /** Saves current bag state for the current player and removes stray bags. */
     void cleanupbags() {
-        int bpa;
         dig.sound.soundfalloff();
-        for (bpa = 1; bpa < 8; bpa++) {
+        for (int bpa = 1; bpa < MAX_BAGS; bpa++) {
             if (bagdat[bpa].exist && ((bagdat[bpa].h == 7 && bagdat[bpa].v == 9) ||
-                    bagdat[bpa].xr != 0 || bagdat[bpa].yr != 0 || bagdat[bpa].gt != 0 ||
-                    bagdat[bpa].fallh != 0 || bagdat[bpa].wobbling)) {
+                    bagdat[bpa].xr != 0 || bagdat[bpa].yr != 0 || bagdat[bpa].goldTime != 0 ||
+                    bagdat[bpa].fallHeight != 0 || bagdat[bpa].wobbling)) {
                 bagdat[bpa].exist = false;
                 dig.sprite.erasespr(bpa);
             }
@@ -60,49 +78,50 @@ class Bags {
         }
     }
 
+    /** Main per-frame update for all bags. */
     void dobags() {
         int bag;
-        boolean soundfalloffflag = true, soundwobbleoffflag = true;
-        for (bag = 1; bag < 8; bag++)
+        boolean soundFallOff = true, soundWobbleOff = true;
+        for (bag = 1; bag < MAX_BAGS; bag++)
             if (bagdat[bag].exist) {
-                if (bagdat[bag].gt != 0) {
-                    if (bagdat[bag].gt == 1) {
+                if (bagdat[bag].goldTime != 0) {
+                    if (bagdat[bag].goldTime == 1) {
                         dig.sound.soundbreak();
-                        dig.drawing.drawgold(bag, 4, bagdat[bag].x, bagdat[bag].y);
+                        dig.drawing.drawGold(bag, 4, bagdat[bag].x, bagdat[bag].y);
                         dig.main.incpenalty();
                     }
-                    if (bagdat[bag].gt == 3) {
-                        dig.drawing.drawgold(bag, 5, bagdat[bag].x, bagdat[bag].y);
+                    if (bagdat[bag].goldTime == 3) {
+                        dig.drawing.drawGold(bag, 5, bagdat[bag].x, bagdat[bag].y);
                         dig.main.incpenalty();
                     }
-                    if (bagdat[bag].gt == 5) {
-                        dig.drawing.drawgold(bag, 6, bagdat[bag].x, bagdat[bag].y);
+                    if (bagdat[bag].goldTime == 5) {
+                        dig.drawing.drawGold(bag, 6, bagdat[bag].x, bagdat[bag].y);
                         dig.main.incpenalty();
                     }
-                    bagdat[bag].gt++;
-                    if (bagdat[bag].gt == goldtime)
+                    bagdat[bag].goldTime++;
+                    if (bagdat[bag].goldTime == goldTime)
                         removebag(bag);
-                    else if (bagdat[bag].v < 9 && bagdat[bag].gt < goldtime - 10)
+                    else if (bagdat[bag].v < 9 && bagdat[bag].goldTime < goldTime - 10)
                         if ((dig.monster.getfield(bagdat[bag].h, bagdat[bag].v + 1) & 0x2000) == 0)
-                            bagdat[bag].gt = goldtime - 10;
+                            bagdat[bag].goldTime = goldTime - 10;
                 } else
                     updatebag(bag);
             }
-        for (bag = 1; bag < 8; bag++) {
-            if (bagdat[bag].dir == 6 && bagdat[bag].exist)
-                soundfalloffflag = false;
-            if (bagdat[bag].dir != 6 && bagdat[bag].wobbling && bagdat[bag].exist)
-                soundwobbleoffflag = false;
+        for (bag = 1; bag < MAX_BAGS; bag++) {
+            if (bagdat[bag].direction == 6 && bagdat[bag].exist)
+                soundFallOff = false;
+            if (bagdat[bag].direction != 6 && bagdat[bag].wobbling && bagdat[bag].exist)
+                soundWobbleOff = false;
         }
-        if (soundfalloffflag)
+        if (soundFallOff)
             dig.sound.soundfalloff();
-        if (soundwobbleoffflag)
+        if (soundWobbleOff)
             dig.sound.soundwobbleoff();
     }
 
+    /** Restores bag state from the current player's snapshot and draws them. */
     void drawbags() {
-        int bag;
-        for (bag = 1; bag < 8; bag++) {
+        for (int bag = 1; bag < MAX_BAGS; bag++) {
             if (dig.main.getcplayer() == 0)
                 bagdat[bag].copyFrom(bagdat1[bag]);
             else
@@ -114,13 +133,13 @@ class Bags {
 
     int getbagdir(int bag) {
         if (bagdat[bag].exist)
-            return bagdat[bag].dir;
+            return bagdat[bag].direction;
         return -1;
     }
 
+    /** Collects gold from a broken bag. */
     void getgold(int bag) {
-        int clbits;
-        clbits = dig.drawing.drawgold(bag, 6, bagdat[bag].x, bagdat[bag].y);
+        int clbits = dig.drawing.drawGold(bag, 6, bagdat[bag].x, bagdat[bag].y);
         dig.main.incpenalty();
         if ((clbits & 1) != 0) {
             dig.scores.scoregold();
@@ -131,48 +150,51 @@ class Bags {
         removebag(bag);
     }
 
+    /** Counts bags that are currently moving (falling or wobbling). */
     int getnmovingbags() {
-        int bag, n = 0;
-        for (bag = 1; bag < 8; bag++)
-            if (bagdat[bag].exist && bagdat[bag].gt < 10 &&
-                    (bagdat[bag].gt != 0 || bagdat[bag].wobbling))
+        int n = 0;
+        for (int bag = 1; bag < MAX_BAGS; bag++)
+            if (bagdat[bag].exist && bagdat[bag].goldTime < 10 &&
+                    (bagdat[bag].goldTime != 0 || bagdat[bag].wobbling))
                 n++;
         return n;
     }
 
+    /** Places bags on the field according to the level plan. */
     void initbags() {
-        int bag, x, y;
-        pushcount = 0;
-        goldtime = 150 - dig.main.levof10() * 10;
-        for (bag = 1; bag < 8; bag++)
+        pushCount = 0;
+        goldTime = GOLD_BASE_TIME - dig.main.levof10() * 10;
+        for (int bag = 1; bag < MAX_BAGS; bag++)
             bagdat[bag].exist = false;
-        bag = 1;
-        for (x = 0; x < 15; x++)
-            for (y = 0; y < 10; y++)
+        int bag = 1;
+        for (int x = 0; x < 15; x++)
+            for (int y = 0; y < 10; y++)
                 if (dig.main.getlevch(x, y, dig.main.levplan()) == 'B')
-                    if (bag < 8) {
+                    if (bag < MAX_BAGS) {
                         bagdat[bag].exist = true;
-                        bagdat[bag].gt = 0;
-                        bagdat[bag].fallh = 0;
-                        bagdat[bag].dir = -1;
+                        bagdat[bag].goldTime = 0;
+                        bagdat[bag].fallHeight = 0;
+                        bagdat[bag].direction = -1;
                         bagdat[bag].wobbling = false;
-                        bagdat[bag].wt = 15;
+                        bagdat[bag].wobbleTime = 15;
                         bagdat[bag].unfallen = true;
                         bagdat[bag].x = x * 20 + 12;
                         bagdat[bag].y = y * 18 + 18;
                         bagdat[bag].h = x;
                         bagdat[bag].v = y;
                         bagdat[bag].xr = 0;
-                        bagdat[bag++].yr = 0;
+                        bagdat[bag].yr = 0;
+                        bag++;
                     }
         if (dig.main.getcplayer() == 0)
-            for (int i = 1; i < 8; i++)
+            for (int i = 1; i < MAX_BAGS; i++)
                 bagdat1[i].copyFrom(bagdat[i]);
         else
-            for (int i = 1; i < 8; i++)
+            for (int i = 1; i < MAX_BAGS; i++)
                 bagdat2[i].copyFrom(bagdat[i]);
     }
 
+    /** Attempts to push a bag in the given direction. Returns true if push succeeded. */
     boolean pushbag(int bag, int dir) {
         int x, y, h, v, ox, oy, clbits;
         boolean push = true;
@@ -180,12 +202,12 @@ class Bags {
         oy = y = bagdat[bag].y;
         h = bagdat[bag].h;
         v = bagdat[bag].v;
-        if (bagdat[bag].gt != 0) {
+        if (bagdat[bag].goldTime != 0) {
             getgold(bag);
             return true;
         }
-        if (bagdat[bag].dir == 6 && (dir == 4 || dir == 0)) {
-            clbits = dig.drawing.drawgold(bag, 3, x, y);
+        if (bagdat[bag].direction == 6 && (dir == 4 || dir == 0)) {
+            clbits = dig.drawing.drawGold(bag, 3, x, y);
             dig.main.incpenalty();
             if (((clbits & 1) != 0) && (dig.diggery >= y))
                 dig.killdigger(1, bag);
@@ -207,17 +229,17 @@ class Bags {
                 case 6:
                     if (bagdat[bag].unfallen) {
                         bagdat[bag].unfallen = false;
-                        dig.drawing.drawsquareblob(x, y);
-                        dig.drawing.drawtopblob(x, y + 21);
+dig.drawing.drawBagGroundCrack(x, y);
+dig.drawing.drawTunnelEdgeTop(x, y + 21);
                     } else
-                        dig.drawing.drawfurryblob(x, y);
-                    dig.drawing.eatfield(x, y, dir);
+dig.drawing.drawBagFallDebris(x, y);
+dig.drawing.digTunnel(x, y, dir);
                     dig.killemerald(h, v);
                     y += 6;
             }
             switch (dir) {
                 case 6:
-                    clbits = dig.drawing.drawgold(bag, 3, x, y);
+                    clbits = dig.drawing.drawGold(bag, 3, x, y);
                     dig.main.incpenalty();
                     if (((clbits & 1) != 0) && dig.diggery >= y)
                         dig.killdigger(1, bag);
@@ -226,31 +248,31 @@ class Bags {
                     break;
                 case 0:
                 case 4:
-                    bagdat[bag].wt = 15;
+                    bagdat[bag].wobbleTime = 15;
                     bagdat[bag].wobbling = false;
-                    clbits = dig.drawing.drawgold(bag, 0, x, y);
+                    clbits = dig.drawing.drawGold(bag, 0, x, y);
                     dig.main.incpenalty();
-                    pushcount = 1;
+                    pushCount = 1;
                     if ((clbits & 0xfe) != 0)
                         if (!pushbags(dir, clbits)) {
                             x = ox;
                             y = oy;
-                            dig.drawing.drawgold(bag, 0, ox, oy);
+                            dig.drawing.drawGold(bag, 0, ox, oy);
                             dig.main.incpenalty();
                             push = false;
                         }
                     if (((clbits & 1) != 0) || ((clbits & 0x3f00) != 0)) {
                         x = ox;
                         y = oy;
-                        dig.drawing.drawgold(bag, 0, ox, oy);
+                        dig.drawing.drawGold(bag, 0, ox, oy);
                         dig.main.incpenalty();
                         push = false;
                     }
             }
             if (push)
-                bagdat[bag].dir = dir;
+                bagdat[bag].direction = dir;
             else
-                bagdat[bag].dir = dig.reversedir(dir);
+                bagdat[bag].direction = dig.reversedir(dir);
             bagdat[bag].x = x;
             bagdat[bag].y = y;
             bagdat[bag].h = (x - 12) / 20;
@@ -261,22 +283,22 @@ class Bags {
         return push;
     }
 
+    /** Pushes all bags that collide with the given bitmask. */
     boolean pushbags(int dir, int bits) {
-        int bag, bit;
         boolean push = true;
-        for (bag = 1, bit = 2; bag < 8; bag++, bit <<= 1)
+        for (int bag = 1, bit = 2; bag < MAX_BAGS; bag++, bit <<= 1)
             if ((bits & bit) != 0)
                 if (!pushbag(bag, dir))
                     push = false;
         return push;
     }
 
+    /** Checks if vertical push is possible (bags with gold auto-collect). */
     boolean pushudbags(int bits) {
-        int bag, b;
         boolean push = true;
-        for (bag = 1, b = 2; bag < 8; bag++, b <<= 1)
+        for (int bag = 1, b = 2; bag < MAX_BAGS; bag++, b <<= 1)
             if ((bits & b) != 0)
-                if (bagdat[bag].gt != 0)
+                if (bagdat[bag].goldTime != 0)
                     getgold(bag);
                 else
                     push = false;
@@ -291,12 +313,12 @@ class Bags {
     }
 
     void removebags(int bits) {
-        int bag, b;
-        for (bag = 1, b = 2; bag < 8; bag++, b <<= 1)
+        for (int bag = 1, b = 2; bag < MAX_BAGS; bag++, b <<= 1)
             if ((bagdat[bag].exist) && ((bits & b) != 0))
                 removebag(bag);
     }
 
+    /** Per-frame update for a single bag: handles wobbling and falling transitions. */
     void updatebag(int bag) {
         int x, h, xr, y, v, yr, wbl;
         x = bagdat[bag].x;
@@ -305,19 +327,19 @@ class Bags {
         y = bagdat[bag].y;
         v = bagdat[bag].v;
         yr = bagdat[bag].yr;
-        switch (bagdat[bag].dir) {
+        switch (bagdat[bag].direction) {
             case -1:
                 if (y < 180 && xr == 0) {
                     if (bagdat[bag].wobbling) {
-                        if (bagdat[bag].wt == 0) {
-                            bagdat[bag].dir = 6;
+                        if (bagdat[bag].wobbleTime == 0) {
+                            bagdat[bag].direction = 6;
                             dig.sound.soundfall();
                             break;
                         }
-                        bagdat[bag].wt--;
-                        wbl = bagdat[bag].wt % 8;
+                        bagdat[bag].wobbleTime--;
+                        wbl = bagdat[bag].wobbleTime % 8;
                         if (!((wbl & 1) != 0)) {
-                            dig.drawing.drawgold(bag, wblanim[wbl >> 1], x, y);
+                            dig.drawing.drawGold(bag, wobbleAnim[wbl >> 1], x, y);
                             dig.main.incpenalty();
                             dig.sound.soundwobble();
                         }
@@ -325,7 +347,7 @@ class Bags {
                         if (!dig.checkdiggerunderbag(h, v + 1))
                             bagdat[bag].wobbling = true;
                 } else {
-                    bagdat[bag].wt = 15;
+                    bagdat[bag].wobbleTime = 15;
                     bagdat[bag].wobbling = false;
                 }
                 break;
@@ -333,15 +355,15 @@ class Bags {
             case 4:
                 if (xr == 0)
                     if (y < 180 && (dig.monster.getfield(h, v + 1) & 0xfdf) != 0xfdf) {
-                        bagdat[bag].dir = 6;
-                        bagdat[bag].wt = 0;
+                        bagdat[bag].direction = 6;
+                        bagdat[bag].wobbleTime = 0;
                         dig.sound.soundfall();
                     } else
                         baghitground(bag);
                 break;
             case 6:
                 if (yr == 0)
-                    bagdat[bag].fallh++;
+                    bagdat[bag].fallHeight++;
                 if (y >= 180)
                     baghitground(bag);
                 else if ((dig.monster.getfield(h, v + 1) & 0xfdf) == 0xfdf)
@@ -349,10 +371,10 @@ class Bags {
                         baghitground(bag);
                 dig.monster.checkmonscared(bagdat[bag].h);
         }
-        if (bagdat[bag].dir != -1)
-            if (bagdat[bag].dir != 6 && pushcount != 0)
-                pushcount--;
+        if (bagdat[bag].direction != -1)
+            if (bagdat[bag].direction != 6 && pushCount != 0)
+                pushCount--;
             else
-                pushbag(bag, bagdat[bag].dir);
+                pushbag(bag, bagdat[bag].direction);
     }
 }

@@ -1,6 +1,6 @@
 package org.digger.app;
 
-abstract class alpha {
+abstract class Alphabet {
 
     static int textoffdat[] = {    // [16]
             72, 0, -72, -72,
