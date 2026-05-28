@@ -46,7 +46,14 @@ To run the game, you need to have Java 17+ installed on your system.
 ```bash
 git clone https://github.com/mortihead/digger
 cd digger
-mvn clean package
+
+mvn compile
+java -cp target/classes org.digger.app.Digger
+```
+
+### Build executable JAR with Maven
+```bash
+mvn package
 java -jar target/digger-app-1.0.0.jar
 ```
 
@@ -54,6 +61,6 @@ java -jar target/digger-app-1.0.0.jar
 ```bash
 git clone https://github.com/mortihead/digger
 cd digger
-javac -d out/production/Digger src/org/digger/app/*.java
-java -cp out/production/Digger org.digger.app.Digger
+javac --release 17 -d target/classes src/main/java/org/digger/app/*.java
+java -cp target/classes org.digger.app.Digger
 ```
