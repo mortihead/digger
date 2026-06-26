@@ -116,7 +116,7 @@ class Main {
 
     void addlife(int pl) {
         gameData[pl - 1].lives++;
-        dig.sound.sound1up();
+        dig.sound.sound1Up();
     }
 
     void calibrate() {
@@ -209,14 +209,14 @@ class Main {
         dig.input.initkeyb();
         dig.input.detectjoy();
         dig.scores.loadscores();
-        dig.sound.initsound();
+        dig.sound.initSound();
 
         dig.scores.run();
         dig.scores._updatescores(dig.scores.scores);
 
         numPlayers = 1;
         do {
-            dig.sound.soundstop();
+            dig.sound.soundStop();
             dig.sprite.setsprorder(digSprOrder);
             dig.drawing.createAllSprites();
             dig.input.detectjoy();
@@ -295,7 +295,7 @@ dig.display.clearScreen();
                     dig.drawing.drawBonus(184, 158);
                 if (frame == 223)
                     dig.drawing.drawText("BONUS", 216, 159, 2);
-                dig.newframe();
+                dig.newFrame();
                 frame++;
                 if (frame > 250)
                     frame = 0;
@@ -356,12 +356,12 @@ dig.display.clearScreen();
                     for (c = 1; c <= 3; c++) {
                         dig.drawing.drawText(playerDisplayBuffer, 108, 0, c);
                         dig.scores.writecurscore(c);
-                        dig.newframe();
+                        dig.newFrame();
                         if (dig.input.escape)
                             return;
                     }
-                dig.scores.drawscores();
-                dig.scores.addscore(0);
+                dig.scores.drawScores();
+                dig.scores.addScore(0);
             }
         } else
             initchars();
@@ -383,7 +383,7 @@ dig.display.clearScreen();
             checkLevelDone();
         }
         dig.erasedigger();
-        dig.sound.musicoff();
+        dig.sound.musicOff();
         t = 20;
         while ((dig.bags.getnmovingbags() != 0 || t != 0) && !dig.input.escape) {
             if (t != 0)
@@ -395,15 +395,15 @@ dig.display.clearScreen();
             if (penalty < 8)
                 t = 0;
         }
-        dig.sound.soundstop();
+        dig.sound.soundStop();
         dig.killfire();
         dig.erasebonus();
         dig.bags.cleanupbags();
         dig.drawing.saveFieldSnapshot();
         dig.monster.erasemonsters();
-        dig.newframe();
+        dig.newFrame();
         if (gameData[currentPlayer].levelDone)
-            dig.sound.soundlevdone();
+            dig.sound.soundLevDone();
         if (dig.countem() == 0) {
             gameData[currentPlayer].level++;
             if (gameData[currentPlayer].level > 1000)
@@ -450,30 +450,30 @@ dig.display.clearScreen();
     void testpause() {
         if (dig.input.akeypressed == 32) { // Space bar
             dig.input.akeypressed = 0;
-            dig.sound.soundpause();
-            dig.sound.sett2val(40);
-            dig.sound.setsoundt2();
+            dig.sound.soundPause();
+            dig.sound.setT2Val(40);
+            dig.sound.setSoundT2();
             cleartopline();
             dig.drawing.drawText("PAUSED", 124, 0, 1);
-            dig.newframe();
+            dig.newFrame();
             dig.input.keypressed = 0;
-            while (true) {
+            boolean interrupted = false;
+            while (dig.input.keypressed == 0 && !interrupted) {
                 try {
                     Thread.sleep(50);
-                } catch (Exception e) {
-                    // ignored
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    interrupted = true;
                 }
-                if (dig.input.keypressed != 0)
-                    break;
             }
             cleartopline();
-            dig.scores.drawscores();
-            dig.scores.addscore(0);
+            dig.scores.drawScores();
+            dig.scores.addScore(0);
             dig.drawing.drawLives();
-            dig.newframe();
+            dig.newFrame();
             dig.time = dig.display.getCurrentTimeMillis() - dig.frametime;
             dig.input.keypressed = 0;
         } else
-            dig.sound.soundpauseoff();
+            dig.sound.soundPauseOff();
     }
 }

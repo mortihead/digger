@@ -100,7 +100,7 @@ class SoundEngine {
             long intervalNanos = 1_000_000_000L / UPDATE_RATE_HZ;
             long nextTime = System.nanoTime();
             while (running) {
-                sound.soundint();
+                sound.soundInt();
                 nextTime += intervalNanos;
                 long sleepNanos = nextTime - System.nanoTime();
                 if (sleepNanos > 0) {

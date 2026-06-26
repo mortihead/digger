@@ -374,7 +374,7 @@ class Monster {
             if (dig.bonusmode) {
                 killmon(mon);
                 dig.scores.scoreeatm();
-                dig.sound.soundeatm();
+                dig.sound.soundEatm();
             } else
                 dig.killdigger(3, 0);
 

@@ -94,7 +94,7 @@ public class Digger extends Frame implements Runnable {
                 running = false;
                 input.escape = true;
                 if (sound != null)
-                    sound.killsound();
+                    sound.killSound();
                 dispose();
                 System.exit(0);
             }
@@ -195,7 +195,7 @@ public class Digger extends Frame implements Runnable {
                 drawing.drawDigger(15, diggerx, diggery, false);
                 main.incpenalty();
                 if (bags.getbagdir(deathbag) + 1 == 0) {
-                    sound.soundddie();
+                    sound.soundDdie();
                     deathtime = 5;
                     deathstage = 2;
                     deathani = 0;
@@ -233,11 +233,11 @@ public class Digger extends Frame implements Runnable {
                 if (deathani >= 0 && deathani <= 6) {
                     drawing.drawDigger(15, diggerx, diggery - deatharc[deathani], false);
                     if (deathani == 6)
-                        sound.musicoff();
+                        sound.musicOff();
                     main.incpenalty();
                     deathani++;
                     if (deathani == 1)
-                        sound.soundddie();
+                        sound.soundDdie();
                     if (deathani == 7) {
                         deathtime = 5;
                         deathani = 0;
@@ -254,7 +254,7 @@ public class Digger extends Frame implements Runnable {
     }
 
     void dodigger() {
-        newframe();
+        newFrame();
         if (expsn != 0)
             drawexplosion();
         else
@@ -276,26 +276,26 @@ public class Digger extends Frame implements Runnable {
                     startbonustimeleft--;
                     if ((bonustimeleft & 1) != 0) {
                         display.setIntensity(1);
-                        sound.soundbonus();
+                        sound.soundBonus();
                     } else {
                         display.setIntensity(0);
-                        sound.soundbonus();
+                        sound.soundBonus();
                     }
                     if (startbonustimeleft == 0) {
                         sound.music(0);
-                        sound.soundbonusoff();
+                        sound.soundBonusOff();
                         display.setIntensity(0);
                     }
                 }
             } else {
                 endbonusmode();
-                sound.soundbonusoff();
+                sound.soundBonusOff();
                 sound.music(1);
             }
         }
         if (bonusmode && !digonscr) {
             endbonusmode();
-            sound.soundbonusoff();
+            sound.soundBonusOff();
             sound.music(1);
         }
         if (emocttime > 0)
@@ -313,7 +313,7 @@ public class Digger extends Frame implements Runnable {
     void drawexplosion() {
         switch (expsn) {
             case 1:
-                sound.soundexplode();
+                sound.soundExplode();
             case 2:
             case 3:
                 drawing.drawFire(firex, firey, expsn);
@@ -534,7 +534,7 @@ public class Digger extends Frame implements Runnable {
         if (!notfiring) {
             notfiring = true;
             sprite.erasespr(15);
-            sound.soundfireoff();
+            sound.soundFireOff();
         }
     }
 
@@ -548,7 +548,7 @@ public class Digger extends Frame implements Runnable {
                     emfield[y * 15 + x] &= ~emmask;
     }
 
-    void newframe() {
+    void newFrame() {
         input.checkkeyb();
         time += frametime;
         long l = time - display.getCurrentTimeMillis();
@@ -643,8 +643,8 @@ public class Digger extends Frame implements Runnable {
         if (hitemerald((diggerx - 12) / 20, (diggery - 18) / 18, (diggerx - 12) % 20,
                 (diggery - 18) % 18, digmdir)) {
             scores.scoreemerald();
-            sound.soundem();
-            sound.soundemerald(emocttime);
+            sound.soundEm();
+            sound.soundEmerald(emocttime);
             emocttime = 9;
         }
         clbits = drawing.drawDigger(digdir, diggerx, diggery, notfiring && rechargetime == 0);
@@ -676,7 +676,7 @@ public class Digger extends Frame implements Runnable {
         }
         if (((clbits & 0x3f00) != 0) && bonusmode)
             for (nmon = monster.killmonsters(clbits); nmon != 0; nmon--) {
-                sound.soundeatm();
+                sound.soundEatm();
                 scores.scoreeatm();
             }
         if ((clbits & 0x4000) != 0) {
@@ -717,7 +717,7 @@ public class Digger extends Frame implements Runnable {
                     }
                     firedir = digdir;
                     sprite.movedrawspr(15, firex, firey);
-                    sound.soundfire();
+                    sound.soundFire();
                 }
         } else {
             switch (firedir) {

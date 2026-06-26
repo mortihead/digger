@@ -2,14 +2,14 @@ package org.digger.app;
 
 /**
  * PC Speaker sound emulation for Digger.
- *
+ * <p>
  * Originally driven by Intel 8253 timer hardware and IRQ0 (Int 8) interrupts.
  * Now uses SoundEngine to generate real-time square wave audio via Java Sound API.
- *
+ * <p>
  * Timer divisor → frequency: freq = 1193180 / divisor (Hz)
- *   0x7d00 (32000) → ~37 Hz  (sub-audible, used as "silence" marker)
- *   0x8e8  (2280)  → ~523 Hz (C5)
- *   0x11d1 (4561)  → ~262 Hz (C4)
+ * 0x7d00 (32000) → ~37 Hz  (sub-audible, used as "silence" marker)
+ * 0x8e8  (2280)  → ~523 Hz (C5)
+ * 0x11d1 (4561)  → ~262 Hz (C4)
  */
 class Sound {
 
@@ -24,7 +24,7 @@ class Sound {
     int pulsewidth = 1;
     int volume = 0;
 
-    int timerclock = 0;
+    int timerClock = 0;
 
     boolean soundflag = true, musicflag = true;
     boolean sndflag = false, soundpausedflag = false;
@@ -90,56 +90,56 @@ class Sound {
 
     // --- Music jingles (format: [freq1, dur1, freq2, dur2, ...], terminated by 0x7d64) ---
     int[] bonusjingle = {
-            0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2,
-            0xd59, 4, 0xbe4, 4, 0xa98, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2,
-            0x11d1, 4, 0xd59, 2, 0xa98, 2, 0xbe4, 4, 0xe24, 4, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2,
-            0x11d1, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2, 0xd59, 4, 0xbe4, 4,
-            0xa98, 4, 0xd59, 2, 0xa98, 2, 0x8e8, 10, 0xa00, 2, 0xa98, 2, 0xbe4, 2, 0xd59, 4,
-            0xa98, 4, 0xd59, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4,
-            0x11d1, 2, 0x11d1, 2, 0xd59, 4, 0xbe4, 4, 0xa98, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4,
-            0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0xd59, 2, 0xa98, 2, 0xbe4, 4, 0xe24, 4, 0x11d1, 4,
-            0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2,
-            0xd59, 4, 0xbe4, 4, 0xa98, 4, 0xd59, 2, 0xa98, 2, 0x8e8, 10, 0xa00, 2, 0xa98, 2,
-            0xbe4, 2, 0xd59, 4, 0xa98, 4, 0xd59, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4, 0xa98, 2,
-            0xa98, 2, 0xa98, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4, 0x7f0, 4, 0xa98, 4, 0x7f0, 4,
-            0xa98, 4, 0x7f0, 4, 0xa98, 4, 0xbe4, 4, 0xd59, 4, 0xe24, 4, 0xfdf, 4, 0xa98, 2,
-            0xa98, 2, 0xa98, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4,
-            0x7f0, 4, 0xa98, 4, 0x7f0, 4, 0xa98, 4, 0x7f0, 4, 0x8e8, 4, 0x970, 4, 0x8e8, 4,
-            0x970, 4, 0x8e8, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4,
-            0xa98, 2, 0xa98, 2, 0xa98, 4, 0x7f0, 4, 0xa98, 4, 0x7f0, 4, 0xa98, 4, 0x7f0, 4,
-            0xa98, 4, 0xbe4, 4, 0xd59, 4, 0xe24, 4, 0xfdf, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4,
-            0xa98, 2, 0xa98, 2, 0xa98, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4, 0x7f0, 4, 0xa98, 4,
-            0x7f0, 4, 0xa98, 4, 0x7f0, 4, 0x8e8, 4, 0x970, 4, 0x8e8, 4, 0x970, 4, 0x8e8, 4,
-            0x7d64
+        0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2,
+        0xd59, 4, 0xbe4, 4, 0xa98, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2,
+        0x11d1, 4, 0xd59, 2, 0xa98, 2, 0xbe4, 4, 0xe24, 4, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2,
+        0x11d1, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2, 0xd59, 4, 0xbe4, 4,
+        0xa98, 4, 0xd59, 2, 0xa98, 2, 0x8e8, 10, 0xa00, 2, 0xa98, 2, 0xbe4, 2, 0xd59, 4,
+        0xa98, 4, 0xd59, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4,
+        0x11d1, 2, 0x11d1, 2, 0xd59, 4, 0xbe4, 4, 0xa98, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4,
+        0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0xd59, 2, 0xa98, 2, 0xbe4, 4, 0xe24, 4, 0x11d1, 4,
+        0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2, 0x11d1, 4, 0x11d1, 2, 0x11d1, 2,
+        0xd59, 4, 0xbe4, 4, 0xa98, 4, 0xd59, 2, 0xa98, 2, 0x8e8, 10, 0xa00, 2, 0xa98, 2,
+        0xbe4, 2, 0xd59, 4, 0xa98, 4, 0xd59, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4, 0xa98, 2,
+        0xa98, 2, 0xa98, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4, 0x7f0, 4, 0xa98, 4, 0x7f0, 4,
+        0xa98, 4, 0x7f0, 4, 0xa98, 4, 0xbe4, 4, 0xd59, 4, 0xe24, 4, 0xfdf, 4, 0xa98, 2,
+        0xa98, 2, 0xa98, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4,
+        0x7f0, 4, 0xa98, 4, 0x7f0, 4, 0xa98, 4, 0x7f0, 4, 0x8e8, 4, 0x970, 4, 0x8e8, 4,
+        0x970, 4, 0x8e8, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4,
+        0xa98, 2, 0xa98, 2, 0xa98, 4, 0x7f0, 4, 0xa98, 4, 0x7f0, 4, 0xa98, 4, 0x7f0, 4,
+        0xa98, 4, 0xbe4, 4, 0xd59, 4, 0xe24, 4, 0xfdf, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4,
+        0xa98, 2, 0xa98, 2, 0xa98, 4, 0xa98, 2, 0xa98, 2, 0xa98, 4, 0x7f0, 4, 0xa98, 4,
+        0x7f0, 4, 0xa98, 4, 0x7f0, 4, 0x8e8, 4, 0x970, 4, 0x8e8, 4, 0x970, 4, 0x8e8, 4,
+        0x7d64
     };
 
     int[] backgjingle = {
-            0xfdf, 2, 0x11d1, 2, 0xfdf, 2, 0x1530, 2, 0x1ab2, 2, 0x1530, 2, 0x1fbf, 4, 0xfdf, 2,
-            0x11d1, 2, 0xfdf, 2, 0x1530, 2, 0x1ab2, 2, 0x1530, 2, 0x1fbf, 4, 0xfdf, 2, 0xe24, 2,
-            0xd59, 2, 0xe24, 2, 0xd59, 2, 0xfdf, 2, 0xe24, 2, 0xfdf, 2, 0xe24, 2, 0x11d1, 2,
-            0xfdf, 2, 0x11d1, 2, 0xfdf, 2, 0x1400, 2, 0xfdf, 4, 0xfdf, 2, 0x11d1, 2, 0xfdf, 2,
-            0x1530, 2, 0x1ab2, 2, 0x1530, 2, 0x1fbf, 4, 0xfdf, 2, 0x11d1, 2, 0xfdf, 2, 0x1530, 2,
-            0x1ab2, 2, 0x1530, 2, 0x1fbf, 4, 0xfdf, 2, 0xe24, 2, 0xd59, 2, 0xe24, 2, 0xd59, 2,
-            0xfdf, 2, 0xe24, 2, 0xfdf, 2, 0xe24, 2, 0x11d1, 2, 0xfdf, 2, 0x11d1, 2, 0xfdf, 2,
-            0xe24, 2, 0xd59, 4, 0xa98, 2, 0xbe4, 2, 0xa98, 2, 0xd59, 2, 0x11d1, 2, 0xd59, 2,
-            0x1530, 4, 0xa98, 2, 0xbe4, 2, 0xa98, 2, 0xd59, 2, 0x11d1, 2, 0xd59, 2, 0x1530, 4,
-            0xa98, 2, 0x970, 2, 0x8e8, 2, 0x970, 2, 0x8e8, 2, 0xa98, 2, 0x970, 2, 0xa98, 2,
-            0x970, 2, 0xbe4, 2, 0xa98, 2, 0xbe4, 2, 0xa98, 2, 0xd59, 2, 0xa98, 4, 0xa98, 2,
-            0xbe4, 2, 0xa98, 2, 0xd59, 2, 0x11d1, 2, 0xd59, 2, 0x1530, 4, 0xa98, 2, 0xbe4, 2,
-            0xa98, 2, 0xd59, 2, 0x11d1, 2, 0xd59, 2, 0x1530, 4, 0xa98, 2, 0x970, 2, 0x8e8, 2,
-            0x970, 2, 0x8e8, 2, 0xa98, 2, 0x970, 2, 0xa98, 2, 0x970, 2, 0xbe4, 2, 0xa98, 2,
-            0xbe4, 2, 0xa98, 2, 0xd59, 2, 0xa98, 4, 0x7f0, 2, 0x8e8, 2, 0xa98, 2, 0xd59, 2,
-            0x11d1, 2, 0xd59, 2, 0x1530, 4, 0xa98, 2, 0xbe4, 2, 0xa98, 2, 0xd59, 2, 0x11d1, 2,
-            0xd59, 2, 0x1530, 4, 0xa98, 2, 0x970, 2, 0x8e8, 2, 0x970, 2, 0x8e8, 2, 0xa98, 2,
-            0x970, 2, 0xa98, 2, 0x970, 2, 0xbe4, 2, 0xa98, 2, 0xbe4, 2, 0xd59, 2, 0xbe4, 2,
-            0xa98, 4, 0x7d64
+        0xfdf, 2, 0x11d1, 2, 0xfdf, 2, 0x1530, 2, 0x1ab2, 2, 0x1530, 2, 0x1fbf, 4, 0xfdf, 2,
+        0x11d1, 2, 0xfdf, 2, 0x1530, 2, 0x1ab2, 2, 0x1530, 2, 0x1fbf, 4, 0xfdf, 2, 0xe24, 2,
+        0xd59, 2, 0xe24, 2, 0xd59, 2, 0xfdf, 2, 0xe24, 2, 0xfdf, 2, 0xe24, 2, 0x11d1, 2,
+        0xfdf, 2, 0x11d1, 2, 0xfdf, 2, 0x1400, 2, 0xfdf, 4, 0xfdf, 2, 0x11d1, 2, 0xfdf, 2,
+        0x1530, 2, 0x1ab2, 2, 0x1530, 2, 0x1fbf, 4, 0xfdf, 2, 0x11d1, 2, 0xfdf, 2, 0x1530, 2,
+        0x1ab2, 2, 0x1530, 2, 0x1fbf, 4, 0xfdf, 2, 0xe24, 2, 0xd59, 2, 0xe24, 2, 0xd59, 2,
+        0xfdf, 2, 0xe24, 2, 0xfdf, 2, 0xe24, 2, 0x11d1, 2, 0xfdf, 2, 0x11d1, 2, 0xfdf, 2,
+        0xe24, 2, 0xd59, 4, 0xa98, 2, 0xbe4, 2, 0xa98, 2, 0xd59, 2, 0x11d1, 2, 0xd59, 2,
+        0x1530, 4, 0xa98, 2, 0xbe4, 2, 0xa98, 2, 0xd59, 2, 0x11d1, 2, 0xd59, 2, 0x1530, 4,
+        0xa98, 2, 0x970, 2, 0x8e8, 2, 0x970, 2, 0x8e8, 2, 0xa98, 2, 0x970, 2, 0xa98, 2,
+        0x970, 2, 0xbe4, 2, 0xa98, 2, 0xbe4, 2, 0xa98, 2, 0xd59, 2, 0xa98, 4, 0xa98, 2,
+        0xbe4, 2, 0xa98, 2, 0xd59, 2, 0x11d1, 2, 0xd59, 2, 0x1530, 4, 0xa98, 2, 0xbe4, 2,
+        0xa98, 2, 0xd59, 2, 0x11d1, 2, 0xd59, 2, 0x1530, 4, 0xa98, 2, 0x970, 2, 0x8e8, 2,
+        0x970, 2, 0x8e8, 2, 0xa98, 2, 0x970, 2, 0xa98, 2, 0x970, 2, 0xbe4, 2, 0xa98, 2,
+        0xbe4, 2, 0xa98, 2, 0xd59, 2, 0xa98, 4, 0x7f0, 2, 0x8e8, 2, 0xa98, 2, 0xd59, 2,
+        0x11d1, 2, 0xd59, 2, 0x1530, 4, 0xa98, 2, 0xbe4, 2, 0xa98, 2, 0xd59, 2, 0x11d1, 2,
+        0xd59, 2, 0x1530, 4, 0xa98, 2, 0x970, 2, 0x8e8, 2, 0x970, 2, 0x8e8, 2, 0xa98, 2,
+        0x970, 2, 0xa98, 2, 0x970, 2, 0xbe4, 2, 0xa98, 2, 0xbe4, 2, 0xd59, 2, 0xbe4, 2,
+        0xa98, 4, 0x7d64
     };
 
     int[] dirge = {
-            0x7d00, 2, 0x11d1, 6, 0x11d1, 4, 0x11d1, 2, 0x11d1, 6, 0xefb, 4, 0xfdf, 2,
-            0xfdf, 4, 0x11d1, 2, 0x11d1, 4, 0x12e0, 2, 0x11d1, 12, 0x7d00, 16, 0x7d00, 16,
-            0x7d00, 16, 0x7d00, 16, 0x7d00, 16, 0x7d00, 16, 0x7d00, 16, 0x7d00, 16,
-            0x7d00, 16, 0x7d00, 16, 0x7d00, 16, 0x7d64
+        0x7d00, 2, 0x11d1, 6, 0x11d1, 4, 0x11d1, 2, 0x11d1, 6, 0xefb, 4, 0xfdf, 2,
+        0xfdf, 4, 0x11d1, 2, 0x11d1, 4, 0x12e0, 2, 0x11d1, 12, 0x7d00, 16, 0x7d00, 16,
+        0x7d00, 16, 0x7d00, 16, 0x7d00, 16, 0x7d00, 16, 0x7d00, 16, 0x7d00, 16,
+        0x7d00, 16, 0x7d00, 16, 0x7d00, 16, 0x7d64
     };
 
     boolean soundt0flag = false;
@@ -162,7 +162,7 @@ class Sound {
 
     // --- Initialization / shutdown ---
 
-    void initsound() {
+    void initSound() {
         wavetype = 2;
         t0val = 12000;
         musvol = 8;
@@ -172,9 +172,9 @@ class Sound {
         spkrmode = 0;
         int8flag = false;
         musicplaying = false;
-        setsoundt2();
-        soundstop();
-        startint8();
+        setSoundT2();
+        soundStop();
+        startInt8();
 
         // Start the Java Sound engine
         engine = new SoundEngine(this);
@@ -185,12 +185,12 @@ class Sound {
         }
     }
 
-    void killsound() {
+    void killSound() {
         if (engine != null) {
             engine.stop();
             engine = null;
         }
-        stopint8();
+        stopInt8();
     }
 
     // --- Music ---
@@ -224,15 +224,15 @@ class Sound {
         }
         musicplaying = true;
         if (tune == 2)
-            soundddieoff();
+            soundDdieOff();
     }
 
-    void musicoff() {
+    void musicOff() {
         musicplaying = false;
         musicp = 0;
     }
 
-    void musicupdate() {
+    void musicUpdate() {
         if (!musicplaying)
             return;
         if (noteduration != 0) {
@@ -300,41 +300,41 @@ class Sound {
 
     // --- Sound mode / timer setup ---
 
-    void setsoundmode() {
+    void setSoundMode() {
         spkrmode = wavetype;
         if (!soundt0flag && sndflag) {
             soundt0flag = true;
         }
     }
 
-    void setsoundt2() {
+    void setSoundT2() {
         if (soundt0flag) {
             spkrmode = 0;
             soundt0flag = false;
         }
     }
 
-    void sett0() {
+    void setT0() {
         if (sndflag) {
             if (t0val < 1000 && (wavetype == 1 || wavetype == 2))
                 t0val = 1000;
             if (musvol < 1) musvol = 1;
             if (musvol > 50) musvol = 50;
             pulsewidth = musvol * volume;
-            setsoundmode();
+            setSoundMode();
         }
     }
 
-    void sett2val(int t2v) {
+    void setT2Val(int t2v) {
         t2val = t2v;
     }
 
-    void setupsound() {
-        // Re-initialize sound engine after killsound()
+    void setupSound() {
+        // Re-initialize sound engine after killSound()
         // (called from Scores after game over / high score entry)
         if (engine == null) {
             sndflag = true;
-            startint8();
+            startInt8();
             engine = new SoundEngine(this);
             boolean ok = engine.start();
             if (!ok) {
@@ -346,16 +346,16 @@ class Sound {
 
     // --- Sound effects: 1-Up ---
 
-    void sound1up() {
+    void sound1Up() {
         sound1upduration = 96;
         sound1upflag = true;
     }
 
-    void sound1upoff() {
+    void sound1UpOff() {
         sound1upflag = false;
     }
 
-    void sound1upupdate() {
+    void sound1UpUpdate() {
         if (sound1upflag) {
             if ((sound1upduration / 3) % 2 != 0)
                 t2val = (sound1upduration << 2) + 600;
@@ -367,16 +367,16 @@ class Sound {
 
     // --- Sound effects: Bonus ---
 
-    void soundbonus() {
+    void soundBonus() {
         soundbonusflag = true;
     }
 
-    void soundbonusoff() {
+    void soundBonusOff() {
         soundbonusflag = false;
         soundbonusn = 0;
     }
 
-    void soundbonusupdate() {
+    void soundBonusUpdate() {
         if (soundbonusflag) {
             soundbonusn++;
             if (soundbonusn > 15)
@@ -390,18 +390,18 @@ class Sound {
 
     // --- Sound effects: Break ---
 
-    void soundbreak() {
+    void soundBreak() {
         soundbreakduration = 3;
         if (soundbreakvalue < 15000)
             soundbreakvalue = 15000;
         soundbreakflag = true;
     }
 
-    void soundbreakoff() {
+    void soundBreakOff() {
         soundbreakflag = false;
     }
 
-    void soundbreakupdate() {
+    void soundBreakUpdate() {
         if (soundbreakflag)
             if (soundbreakduration != 0) {
                 soundbreakduration--;
@@ -412,45 +412,45 @@ class Sound {
 
     // --- Sound effects: Digger death ---
 
-    void soundddie() {
+    void soundDdie() {
         soundddien = 0;
         soundddievalue = 20000;
         soundddieflag = true;
     }
 
-    void soundddieoff() {
+    void soundDdieOff() {
         soundddieflag = false;
     }
 
-    void soundddieupdate() {
+    void soundDdieUpdate() {
         if (soundddieflag) {
             soundddien++;
             if (soundddien == 1)
-                musicoff();
+                musicOff();
             if (soundddien >= 1 && soundddien <= 10)
                 soundddievalue = 20000 - soundddien * 1000;
             if (soundddien > 10)
                 soundddievalue += 500;
             if (soundddievalue > 30000)
-                soundddieoff();
+                soundDdieOff();
             t2val = soundddievalue;
         }
     }
 
     // --- Sound effects: Eat monster ---
 
-    void soundeatm() {
+    void soundEatm() {
         soundeatmduration = 20;
         soundeatmn = 3;
         soundeatmvalue = 2000;
         soundeatmflag = true;
     }
 
-    void soundeatmoff() {
+    void soundEatmOff() {
         soundeatmflag = false;
     }
 
-    void soundeatmupdate() {
+    void soundEatmUpdate() {
         if (soundeatmflag)
             if (soundeatmn != 0) {
                 if (soundeatmduration != 0) {
@@ -471,21 +471,38 @@ class Sound {
 
     // --- Sound effects: Emerald monster ---
 
-    void soundem() {
+    void soundEm() {
         soundemflag = true;
     }
 
-    void soundemerald(int emocttime) {
+    void soundEmerald(int emocttime) {
         if (emocttime != 0) {
             switch (emerfreq) {
-                case 0x8e8: emerfreq = 0x7f0; break;
-                case 0x7f0: emerfreq = 0x712; break;
-                case 0x712: emerfreq = 0x6ac; break;
-                case 0x6ac: emerfreq = 0x5f2; break;
-                case 0x5f2: emerfreq = 0x54c; break;
-                case 0x54c: emerfreq = 0x4b8; break;
-                case 0x4b8: emerfreq = 0x474; dig.scores.scoreoctave(); break;
-                case 0x474: emerfreq = 0x8e8; break;
+                case 0x8e8:
+                    emerfreq = 0x7f0;
+                    break;
+                case 0x7f0:
+                    emerfreq = 0x712;
+                    break;
+                case 0x712:
+                    emerfreq = 0x6ac;
+                    break;
+                case 0x6ac:
+                    emerfreq = 0x5f2;
+                    break;
+                case 0x5f2:
+                    emerfreq = 0x54c;
+                    break;
+                case 0x54c:
+                    emerfreq = 0x4b8;
+                    break;
+                case 0x4b8:
+                    emerfreq = 0x474;
+                    dig.scores.scoreoctave();
+                    break;
+                case 0x474:
+                    emerfreq = 0x8e8;
+                    break;
             }
         } else {
             emerfreq = 0x8e8;
@@ -495,11 +512,11 @@ class Sound {
         soundemeraldflag = true;
     }
 
-    void soundemeraldoff() {
+    void soundEmeraldOff() {
         soundemeraldflag = false;
     }
 
-    void soundemeraldupdate() {
+    void soundEmeraldUpdate() {
         if (soundemeraldflag)
             if (soundemeraldduration != 0) {
                 if (soundemeraldn == 0 || soundemeraldn == 1)
@@ -510,34 +527,34 @@ class Sound {
                     soundemeraldduration--;
                 }
             } else
-                soundemeraldoff();
+                soundEmeraldOff();
     }
 
-    void soundemoff() {
+    void soundEmOff() {
         soundemflag = false;
     }
 
-    void soundemupdate() {
+    void soundEmUpdate() {
         if (soundemflag) {
             t2val = 1000;
-            soundemoff();
+            soundEmOff();
         }
     }
 
     // --- Sound effects: Explode ---
 
-    void soundexplode() {
+    void soundExplode() {
         soundexplodevalue = 1500;
         soundexplodeduration = 10;
         soundexplodeflag = true;
-        soundfireoff();
+        soundFireOff();
     }
 
-    void soundexplodeoff() {
+    void soundExplodeOff() {
         soundexplodeflag = false;
     }
 
-    void soundexplodeupdate() {
+    void soundExplodeUpdate() {
         if (soundexplodeflag)
             if (soundexplodeduration != 0) {
                 soundexplodevalue = t2val = soundexplodevalue - (soundexplodevalue >> 3);
@@ -548,17 +565,17 @@ class Sound {
 
     // --- Sound effects: Fall ---
 
-    void soundfall() {
+    void soundFall() {
         soundfallvalue = 1000;
         soundfallflag = true;
     }
 
-    void soundfalloff() {
+    void soundFallOff() {
         soundfallflag = false;
         soundfalln = 0;
     }
 
-    void soundfallupdate() {
+    void soundFallUpdate() {
         if (soundfallflag)
             if (soundfalln < 1) {
                 soundfalln++;
@@ -576,24 +593,24 @@ class Sound {
 
     // --- Sound effects: Fire ---
 
-    void soundfire() {
+    void soundFire() {
         soundfirevalue = 500;
         soundfireflag = true;
     }
 
-    void soundfireoff() {
+    void soundFireOff() {
         soundfireflag = false;
         soundfiren = 0;
     }
 
-    void soundfireupdate() {
+    void soundFireUpdate() {
         if (soundfireflag) {
             if (soundfiren == 1) {
                 soundfiren = 0;
                 soundfirevalue += soundfirevalue / 55;
                 t2val = soundfirevalue + dig.main.randno(soundfirevalue >> 3);
                 if (soundfirevalue > 30000)
-                    soundfireoff();
+                    soundFireOff();
             } else
                 soundfiren++;
         }
@@ -601,7 +618,7 @@ class Sound {
 
     // --- Sound effects: Gold ---
 
-    void soundgold() {
+    void soundGold() {
         soundgoldvalue1 = 500;
         soundgoldvalue2 = 4000;
         soundgoldduration = 30;
@@ -609,11 +626,11 @@ class Sound {
         soundgoldflag = true;
     }
 
-    void soundgoldoff() {
+    void soundGoldOff() {
         soundgoldflag = false;
     }
 
-    void soundgoldupdate() {
+    void soundGoldUpdate() {
         if (soundgoldflag) {
             if (soundgoldduration != 0)
                 soundgoldduration--;
@@ -633,17 +650,17 @@ class Sound {
 
     // --- Main sound interrupt handler (replaces hardware Int 8) ---
 
-    void soundint() {
+    void soundInt() {
         if (soundlevdoneflag) {
-            // soundlevdone() drives timerclock and audio itself
+            // soundLevDone() drives timerclock and audio itself
             return;
         }
-        timerclock++;
+        timerClock++;
         if (soundflag && !sndflag)
             sndflag = true;
         if (!soundflag && sndflag) {
             sndflag = false;
-            setsoundt2();
+            setSoundT2();
             // Silence the engine immediately when all sound is toggled off
             if (engine != null) {
                 engine.updateT0Val(SILENCE_T0VAL);
@@ -652,50 +669,50 @@ class Sound {
             }
         }
         if (!musicflag && musicplaying) {
-            musicoff();
+            musicOff();
         }
         if (sndflag && !soundpausedflag) {
             t0val = SILENCE_T0VAL;
             t2val = DEFAULT_T2VAL;
             if (musicflag)
-                musicupdate();
-            soundemeraldupdate();
-            soundwobbleupdate();
-            soundddieupdate();
-            soundbreakupdate();
-            soundgoldupdate();
-            soundemupdate();
-            soundexplodeupdate();
-            soundfireupdate();
-            soundeatmupdate();
-            soundfallupdate();
-            sound1upupdate();
-            soundbonusupdate();
+                musicUpdate();
+            soundEmeraldUpdate();
+            soundWobbleUpdate();
+            soundDdieUpdate();
+            soundBreakUpdate();
+            soundGoldUpdate();
+            soundEmUpdate();
+            soundExplodeUpdate();
+            soundFireUpdate();
+            soundEatmUpdate();
+            soundFallUpdate();
+            sound1UpUpdate();
+            soundBonusUpdate();
             if (t0val == SILENCE_T0VAL || t2val != DEFAULT_T2VAL)
-                setsoundt2();
+                setSoundT2();
             else {
-                setsoundmode();
-                sett0();
+                setSoundMode();
+                setT0();
             }
-            sett2val(t2val);
+            setT2Val(t2val);
             pushToEngine();
         }
     }
 
     // --- Level done ---
 
-    void soundlevdone() {
-        soundstop();
+    void soundLevDone() {
+        soundStop();
         nljpointer = 0;
         nljnoteduration = 20;
         soundlevdoneflag = true;
         while (soundlevdoneflag) {
-            // timerclock is incremented by soundint() in the engine thread;
-            // drive it ourselves since soundint() skips updates while
+            // timerclock is incremented by soundInt() in the engine thread;
+            // drive it ourselves since soundInt() skips updates while
             // soundlevdoneflag is true
-            int prev = timerclock;
-            timerclock++;
-            soundlevdoneupdate();
+            int prev = timerClock;
+            timerClock++;
+            soundLevDoneUpdate();
             // Small sleep to match original timing (~14ms per tick at 73Hz)
             try {
                 Thread.sleep(14);
@@ -706,19 +723,19 @@ class Sound {
         }
     }
 
-    void soundlevdoneoff() {
+    void soundLevDoneOff() {
         soundlevdoneflag = false;
     }
 
-    void soundlevdoneupdate() {
+    void soundLevDoneUpdate() {
         if (sndflag) {
             if (nljpointer < 11)
                 t2val = newlevjingle[nljpointer];
             t0val = t2val + 35;
             musvol = 50;
-            setsoundmode();
-            sett0();
-            sett2val(t2val);
+            setSoundMode();
+            setT0();
+            setT2Val(t2val);
             pushToEngine();
             if (nljnoteduration > 0)
                 nljnoteduration--;
@@ -726,7 +743,7 @@ class Sound {
                 nljnoteduration = 20;
                 nljpointer++;
                 if (nljpointer > 10)
-                    soundlevdoneoff();
+                    soundLevDoneOff();
             }
         } else {
             soundlevdoneflag = false;
@@ -735,7 +752,7 @@ class Sound {
 
     // --- Pause ---
 
-    void soundpause() {
+    void soundPause() {
         soundpausedflag = true;
         // Silence the engine immediately so the current tone doesn't hang
         if (engine != null) {
@@ -745,64 +762,71 @@ class Sound {
         }
     }
 
-    void soundpauseoff() {
+    void soundPauseOff() {
         soundpausedflag = false;
     }
 
     // --- Stop all sounds ---
 
-    void soundstop() {
-        soundfalloff();
-        soundwobbleoff();
-        soundfireoff();
-        musicoff();
-        soundbonusoff();
-        soundexplodeoff();
-        soundbreakoff();
-        soundemoff();
-        soundemeraldoff();
-        soundgoldoff();
-        soundeatmoff();
-        soundddieoff();
-        sound1upoff();
+    void soundStop() {
+        soundFallOff();
+        soundWobbleOff();
+        soundFireOff();
+        musicOff();
+        soundBonusOff();
+        soundExplodeOff();
+        soundBreakOff();
+        soundEmOff();
+        soundEmeraldOff();
+        soundGoldOff();
+        soundEatmOff();
+        soundDdieOff();
+        sound1UpOff();
     }
 
     // --- Sound effects: Wobble ---
 
-    void soundwobble() {
+    void soundWobble() {
         soundwobbleflag = true;
     }
 
-    void soundwobbleoff() {
+    void soundWobbleOff() {
         soundwobbleflag = false;
         soundwobblen = 0;
     }
 
-    void soundwobbleupdate() {
+    void soundWobbleUpdate() {
         if (soundwobbleflag) {
             soundwobblen++;
             if (soundwobblen > 63)
                 soundwobblen = 0;
             switch (soundwobblen) {
-                case 0:  t2val = 0x7d0; break;
-                case 16: case 48: t2val = 0x9c4; break;
-                case 32: t2val = 0xbb8; break;
+                case 0:
+                    t2val = 0x7d0;
+                    break;
+                case 16:
+                case 48:
+                    t2val = 0x9c4;
+                    break;
+                case 32:
+                    t2val = 0xbb8;
+                    break;
             }
         }
     }
 
     // --- Int 8 emulation (timer interrupt) ---
 
-    void startint8() {
+    void startInt8() {
         if (!int8flag) {
             int8flag = true;
         }
     }
 
-    void stopint8() {
+    void stopInt8() {
         if (int8flag) {
             int8flag = false;
         }
-        sett2val(DEFAULT_T2VAL);
+        setT2Val(DEFAULT_T2VAL);
     }
 }

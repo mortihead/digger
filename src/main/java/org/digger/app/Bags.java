@@ -63,7 +63,7 @@ class Bags {
 
     /** Saves current bag state for the current player and removes stray bags. */
     void cleanupbags() {
-        dig.sound.soundfalloff();
+        dig.sound.soundFallOff();
         for (int bpa = 1; bpa < MAX_BAGS; bpa++) {
             if (bagdat[bpa].exist && ((bagdat[bpa].h == 7 && bagdat[bpa].v == 9) ||
                     bagdat[bpa].xr != 0 || bagdat[bpa].yr != 0 || bagdat[bpa].goldTime != 0 ||
@@ -86,7 +86,7 @@ class Bags {
             if (bagdat[bag].exist) {
                 if (bagdat[bag].goldTime != 0) {
                     if (bagdat[bag].goldTime == 1) {
-                        dig.sound.soundbreak();
+                        dig.sound.soundBreak();
                         dig.drawing.drawGold(bag, 4, bagdat[bag].x, bagdat[bag].y);
                         dig.main.incpenalty();
                     }
@@ -114,9 +114,9 @@ class Bags {
                 soundWobbleOff = false;
         }
         if (soundFallOff)
-            dig.sound.soundfalloff();
+            dig.sound.soundFallOff();
         if (soundWobbleOff)
-            dig.sound.soundwobbleoff();
+            dig.sound.soundWobbleOff();
     }
 
     /** Restores bag state from the current player's snapshot and draws them. */
@@ -143,7 +143,7 @@ class Bags {
         dig.main.incpenalty();
         if ((clbits & 1) != 0) {
             dig.scores.scoregold();
-            dig.sound.soundgold();
+            dig.sound.soundGold();
             dig.digtime = 0;
         } else
             dig.monster.mongold();
@@ -333,7 +333,7 @@ dig.drawing.digTunnel(x, y, dir);
                     if (bagdat[bag].wobbling) {
                         if (bagdat[bag].wobbleTime == 0) {
                             bagdat[bag].direction = 6;
-                            dig.sound.soundfall();
+                            dig.sound.soundFall();
                             break;
                         }
                         bagdat[bag].wobbleTime--;
@@ -341,7 +341,7 @@ dig.drawing.digTunnel(x, y, dir);
                         if (!((wbl & 1) != 0)) {
                             dig.drawing.drawGold(bag, wobbleAnim[wbl >> 1], x, y);
                             dig.main.incpenalty();
-                            dig.sound.soundwobble();
+                            dig.sound.soundWobble();
                         }
                     } else if ((dig.monster.getfield(h, v + 1) & 0xfdf) != 0xfdf)
                         if (!dig.checkdiggerunderbag(h, v + 1))
@@ -357,7 +357,7 @@ dig.drawing.digTunnel(x, y, dir);
                     if (y < 180 && (dig.monster.getfield(h, v + 1) & 0xfdf) != 0xfdf) {
                         bagdat[bag].direction = 6;
                         bagdat[bag].wobbleTime = 0;
-                        dig.sound.soundfall();
+                        dig.sound.soundFall();
                     } else
                         baghitground(bag);
                 break;
