@@ -37,14 +37,14 @@ class Monster {
     }
 
     /** Makes downward-moving monsters reverse when a bag falls near them. */
-    void checkmonscared(int h) {
+    void checkMonScared(int h) {
         for (int m = 0; m < MAX_MONSTERS; m++)
             if ((h == mondat[m].h) && (mondat[m].direction == 2))
                 mondat[m].direction = 6;
     }
 
     /** Spawns a new monster at the top-right corner. */
-    void createmonster() {
+    void createMonster() {
         for (int i = 0; i < MAX_MONSTERS; i++)
             if (!mondat[i].flag) {
                 mondat[i].flag = true;
@@ -69,13 +69,13 @@ class Monster {
     }
 
     /** Main per-frame update: spawning, movement AI, and death animation. */
-    void domonsters() {
+    void doMonsters() {
         if (nextMonTime > 0)
             nextMonTime--;
         else {
-            if (nextMonster < totalMonsters && nmononscr() < maxMonOnScreen && dig.digonscr &&
+            if (nextMonster < totalMonsters && getMonstersOnScreenCount() < maxMonOnScreen && dig.digonscr &&
                     !dig.bonusmode)
-                createmonster();
+                createMonster();
             if (unbonusFlag && nextMonster == totalMonsters && nextMonTime == 0)
                 if (dig.digonscr) {
                     unbonusFlag = false;
@@ -84,7 +84,7 @@ class Monster {
         }
         for (int i = 0; i < MAX_MONSTERS; i++)
             if (mondat[i].flag) {
-                if (mondat[i].huntTime > 10 - dig.main.levof10()) {
+                if (mondat[i].huntTime > 10 - dig.main.getLevelNumberClampedToTen()) {
                     if (mondat[i].nob) {
                         mondat[i].nob = false;
                         mondat[i].huntTime = 0;
@@ -92,24 +92,24 @@ class Monster {
                 }
                 if (mondat[i].alive)
                     if (mondat[i].type == 0) {
-                        monai(i);
-                        if (dig.main.randno(15 - dig.main.levof10()) == 0 && mondat[i].nob)
-                            monai(i);
+                        handleMonsterAi(i);
+                        if (dig.main.randomNumber(15 - dig.main.getLevelNumberClampedToTen()) == 0 && mondat[i].nob)
+                            handleMonsterAi(i);
                     } else
                         mondat[i].type--;
                 else
-                    mondie(i);
+                    handleMonsterDeath(i);
             }
     }
 
-    void erasemonsters() {
+    void eraseMonsters() {
         for (int i = 0; i < MAX_MONSTERS; i++)
             if (mondat[i].flag)
                 dig.sprite.erasespr(i + 8);
     }
 
     /** Checks if a monster can move in the given direction from cell (x, y). */
-    boolean fieldclear(int dir, int x, int y) {
+    boolean fieldClear(int dir, int x, int y) {
         switch (dir) {
             case 0:
                 if (x < 14)
@@ -143,7 +143,7 @@ class Monster {
     }
 
     /** Adds a delay penalty to monster movement timers. */
-    void incmont(int n) {
+    void increaseMonsterDelay(int n) {
         if (n > 6)
             n = 6;
         for (int m = 1; m < n; m++)
@@ -153,19 +153,19 @@ class Monster {
     void incpenalties(int bits) {
         for (int m = 0, b = 256; m < MAX_MONSTERS; m++, b <<= 1) {
             if ((bits & b) != 0)
-                dig.main.incpenalty();
+                dig.main.incrementPenalty();
             b <<= 1;
         }
     }
 
     /** Initializes monster parameters for the current level. */
-    void initmonsters() {
+    void initMonsters() {
         for (int i = 0; i < MAX_MONSTERS; i++)
             mondat[i].flag = false;
         nextMonster = 0;
-        monGapTime = 45 - (dig.main.levof10() << 1);
-        totalMonsters = dig.main.levof10() + 5;
-        switch (dig.main.levof10()) {
+        monGapTime = 45 - (dig.main.getLevelNumberClampedToTen() << 1);
+        totalMonsters = dig.main.getLevelNumberClampedToTen() + 5;
+        switch (dig.main.getLevelNumberClampedToTen()) {
             case 1:
                 maxMonOnScreen = 3;
                 break;
@@ -179,7 +179,7 @@ class Monster {
         unbonusFlag = true;
     }
 
-    void killmon(int mon) {
+    void killMonster(int mon) {
         if (mondat[mon].flag) {
             mondat[mon].flag = mondat[mon].alive = false;
             dig.sprite.erasespr(mon + 8);
@@ -193,14 +193,14 @@ class Monster {
         int n = 0;
         for (int m = 0, b = 256; m < MAX_MONSTERS; m++, b <<= 1)
             if ((bits & b) != 0) {
-                killmon(m);
+                killMonster(m);
                 n++;
             }
         return n;
     }
 
     /** Monster AI: decides direction and performs movement. */
-    void monai(int mon) {
+    void handleMonsterAi(int mon) {
         int clbits, monox, monoy, dir, mdirp1, mdirp2, mdirp3, mdirp4, t;
         boolean push;
         monox = mondat[mon].x;
@@ -208,7 +208,7 @@ class Monster {
         if (mondat[mon].xr == 0 && mondat[mon].yr == 0) {
 
             // Turn hobbin back into nobbin if hunt time exceeded
-            if (mondat[mon].huntTime > 30 + (dig.main.levof10() << 1))
+            if (mondat[mon].huntTime > 30 + (dig.main.getLevelNumberClampedToTen() << 1))
                 if (!mondat[mon].nob) {
                     mondat[mon].huntTime = 0;
                     mondat[mon].nob = true;
@@ -240,18 +240,19 @@ class Monster {
             if (dir == mdirp3) { mdirp3 = mdirp4; mdirp4 = dir; }
 
             // Random element on easier levels: occasionally swap p1 and p3
-            if (dig.main.randno(dig.main.levof10() + 5) == 1 && dig.main.levof10() < 6) {
+            if (dig.main.randomNumber(dig.main.getLevelNumberClampedToTen() + 5) == 1
+                    && dig.main.getLevelNumberClampedToTen() < 6) {
                 t = mdirp1; mdirp1 = mdirp3; mdirp3 = t;
             }
 
             // Check field and find direction
-            if (fieldclear(mdirp1, mondat[mon].h, mondat[mon].v))
+            if (fieldClear(mdirp1, mondat[mon].h, mondat[mon].v))
                 dir = mdirp1;
-            else if (fieldclear(mdirp2, mondat[mon].h, mondat[mon].v))
+            else if (fieldClear(mdirp2, mondat[mon].h, mondat[mon].v))
                 dir = mdirp2;
-            else if (fieldclear(mdirp3, mondat[mon].h, mondat[mon].v))
+            else if (fieldClear(mdirp3, mondat[mon].h, mondat[mon].v))
                 dir = mdirp3;
-            else if (fieldclear(mdirp4, mondat[mon].h, mondat[mon].v))
+            else if (fieldClear(mdirp4, mondat[mon].h, mondat[mon].v))
                 dir = mdirp4;
 
             // Hobbins ignore the field and go where they want
@@ -329,7 +330,7 @@ class Monster {
         // Draw monster and check collisions
         push = true;
         clbits = dig.drawing.drawMonster(mon, mondat[mon].nob, mondat[mon].horizontalDir, mondat[mon].x, mondat[mon].y);
-        dig.main.incpenalty();
+        dig.main.incrementPenalty();
 
         // Collision with another monster
         if ((clbits & 0x3f00) != 0) {
@@ -362,7 +363,7 @@ class Monster {
             mondat[mon].x = monox;
             mondat[mon].y = monoy;
             dig.drawing.drawMonster(mon, mondat[mon].nob, mondat[mon].horizontalDir, mondat[mon].x, mondat[mon].y);
-            dig.main.incpenalty();
+            dig.main.incrementPenalty();
             if (mondat[mon].nob)
                 mondat[mon].huntTime++;
             if ((mondat[mon].direction == 2 || mondat[mon].direction == 6) && mondat[mon].nob)
@@ -372,7 +373,7 @@ class Monster {
         // Collision with digger
         if (((clbits & 1) != 0) && dig.digonscr)
             if (dig.bonusmode) {
-                killmon(mon);
+                killMonster(mon);
                 dig.scores.scoreeatm();
                 dig.sound.soundEatm();
             } else
@@ -386,13 +387,13 @@ class Monster {
     }
 
     /** Monster death animation: crushed by bag or fading out. */
-    void mondie(int mon) {
+    void handleMonsterDeath(int mon) {
         switch (mondat[mon].death) {
             case 1:
                 if (dig.bags.bagy(mondat[mon].bag) + 6 > mondat[mon].y)
                     mondat[mon].y = dig.bags.bagy(mondat[mon].bag);
                 dig.drawing.drawMonsterDeath(mon, mondat[mon].nob, mondat[mon].horizontalDir, mondat[mon].x, mondat[mon].y);
-                dig.main.incpenalty();
+                dig.main.incrementPenalty();
                 if (dig.bags.getbagdir(mondat[mon].bag) == -1) {
                     mondat[mon].deathTime = 1;
                     mondat[mon].death = 4;
@@ -402,21 +403,21 @@ class Monster {
                 if (mondat[mon].deathTime != 0)
                     mondat[mon].deathTime--;
                 else {
-                    killmon(mon);
+                    killMonster(mon);
                     dig.scores.scorekill();
                 }
         }
     }
 
-    void mongold() {
+    void monsterGotGold() {
         monGotGold = true;
     }
 
-    int monleft() {
-        return nmononscr() + totalMonsters - nextMonster;
+    int getMonstersLeft() {
+        return getMonstersOnScreenCount() + totalMonsters - nextMonster;
     }
 
-    int nmononscr() {
+    int getMonstersOnScreenCount() {
         int n = 0;
         for (int i = 0; i < MAX_MONSTERS; i++)
             if (mondat[i].flag)

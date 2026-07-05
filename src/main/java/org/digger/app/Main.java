@@ -9,7 +9,9 @@ class Main {
 
     private final Digger dig;
 
-    /** Sprite draw priority order (higher index = drawn first). */
+    /**
+     * Sprite draw priority order (higher index = drawn first).
+     */
     int[] digSprOrder = {14, 13, 7, 6, 5, 4, 3, 2, 1, 12, 11, 10, 9, 8, 15, 0};
 
     GameState[] gameData = {new GameState(), new GameState()};
@@ -27,94 +29,96 @@ class Main {
 
     int randSeed;
 
-    /** Level layout data: 8 plans × 10 rows × 15 columns. */
+    /**
+     * Level layout data: 8 plans × 10 rows × 15 columns.
+     */
     String[][] levelData = {
-            {"S   B     HHHHS",
-                    "V  CC  C  V B  ",
-                    "VB CC  C  V    ",
-                    "V  CCB CB V CCC",
-                    "V  CC  C  V CCC",
-                    "HH CC  C  V CCC",
-                    " V    B B V    ",
-                    " HHHH     V    ",
-                    "C   V     V   C",
-                    "CC  HHHHHHH  CC"},
-            {"SHHHHH  B B  HS",
-                    " CC  V       V ",
-                    " CC  V CCCCC V ",
-                    "BCCB V CCCCC V ",
-                    "CCCC V       V ",
-                    "CCCC V B  HHHH ",
-                    " CC  V CC V    ",
-                    " BB  VCCCCV CC ",
-                    "C    V CC V CC ",
-                    "CC   HHHHHH    "},
-            {"SHHHHB B BHHHHS",
-                    "CC  V C C V BB ",
-                    "C   V C C V CC ",
-                    " BB V C C VCCCC",
-                    "CCCCV C C VCCCC",
-                    "CCCCHHHHHHH CC ",
-                    " CC  C V C  CC ",
-                    " CC  C V C     ",
-                    "C    C V C    C",
-                    "CC   C H C   CC"},
-            {"SHBCCCCBCCCCBHS",
-                    "CV  CCCCCCC  VC",
-                    "CHHH CCCCC HHHC",
-                    "C  V  CCC  V  C",
-                    "   HHH C HHH   ",
-                    "  B  V B V  B  ",
-                    "  C  VCCCV  C  ",
-                    " CCC HHHHH CCC ",
-                    "CCCCC CVC CCCCC",
-                    "CCCCC CHC CCCCC"},
-            {"SHHHHHHHHHHHHHS",
-                    "VBCCCCBVCCCCCCV",
-                    "VCCCCCCV CCBC V",
-                    "V CCCC VCCBCCCV",
-                    "VCCCCCCV CCCC V",
-                    "V CCCC VBCCCCCV",
-                    "VCCBCCCV CCCC V",
-                    "V CCBC VCCCCCCV",
-                    "VCCCCCCVCCCCCCV",
-                    "HHHHHHHHHHHHHHH"},
-            {"SHHHHHHHHHHHHHS",
-                    "VCBCCV V VCCBCV",
-                    "VCCC VBVBV CCCV",
-                    "VCCCHH V HHCCCV",
-                    "VCC V CVC V CCV",
-                    "VCCHH CVC HHCCV",
-                    "VC V CCVCC V CV",
-                    "VCHHBCCVCCBHHCV",
-                    "VCVCCCCVCCCCVCV",
-                    "HHHHHHHHHHHHHHH"},
-            {"SHCCCCCVCCCCCHS",
-                    " VCBCBCVCBCBCV ",
-                    "BVCCCCCVCCCCCVB",
-                    "CHHCCCCVCCCCHHC",
-                    "CCV CCCVCCC VCC",
-                    "CCHHHCCVCCHHHCC",
-                    "CCCCV CVC VCCCC",
-                    "CCCCHH V HHCCCC",
-                    "CCCCCV V VCCCCC",
-                    "CCCCCHHHHHCCCCC"},
-            {"HHHHHHHHHHHHHHS",
-                    "V CCBCCCCCBCC V",
-                    "HHHCCCCBCCCCHHH",
-                    "VBV CCCCCCC VBV",
-                    "VCHHHCCCCCHHHCV",
-                    "VCCBV CCC VBCCV",
-                    "VCCCHHHCHHHCCCV",
-                    "VCCCC V V CCCCV",
-                    "VCCCCCV VCCCCCV",
-                    "HHHHHHHHHHHHHHH"}};
+        {"S   B     HHHHS",
+            "V  CC  C  V B  ",
+            "VB CC  C  V    ",
+            "V  CCB CB V CCC",
+            "V  CC  C  V CCC",
+            "HH CC  C  V CCC",
+            " V    B B V    ",
+            " HHHH     V    ",
+            "C   V     V   C",
+            "CC  HHHHHHH  CC"},
+        {"SHHHHH  B B  HS",
+            " CC  V       V ",
+            " CC  V CCCCC V ",
+            "BCCB V CCCCC V ",
+            "CCCC V       V ",
+            "CCCC V B  HHHH ",
+            " CC  V CC V    ",
+            " BB  VCCCCV CC ",
+            "C    V CC V CC ",
+            "CC   HHHHHH    "},
+        {"SHHHHB B BHHHHS",
+            "CC  V C C V BB ",
+            "C   V C C V CC ",
+            " BB V C C VCCCC",
+            "CCCCV C C VCCCC",
+            "CCCCHHHHHHH CC ",
+            " CC  C V C  CC ",
+            " CC  C V C     ",
+            "C    C V C    C",
+            "CC   C H C   CC"},
+        {"SHBCCCCBCCCCBHS",
+            "CV  CCCCCCC  VC",
+            "CHHH CCCCC HHHC",
+            "C  V  CCC  V  C",
+            "   HHH C HHH   ",
+            "  B  V B V  B  ",
+            "  C  VCCCV  C  ",
+            " CCC HHHHH CCC ",
+            "CCCCC CVC CCCCC",
+            "CCCCC CHC CCCCC"},
+        {"SHHHHHHHHHHHHHS",
+            "VBCCCCBVCCCCCCV",
+            "VCCCCCCV CCBC V",
+            "V CCCC VCCBCCCV",
+            "VCCCCCCV CCCC V",
+            "V CCCC VBCCCCCV",
+            "VCCBCCCV CCCC V",
+            "V CCBC VCCCCCCV",
+            "VCCCCCCVCCCCCCV",
+            "HHHHHHHHHHHHHHH"},
+        {"SHHHHHHHHHHHHHS",
+            "VCBCCV V VCCBCV",
+            "VCCC VBVBV CCCV",
+            "VCCCHH V HHCCCV",
+            "VCC V CVC V CCV",
+            "VCCHH CVC HHCCV",
+            "VC V CCVCC V CV",
+            "VCHHBCCVCCBHHCV",
+            "VCVCCCCVCCCCVCV",
+            "HHHHHHHHHHHHHHH"},
+        {"SHCCCCCVCCCCCHS",
+            " VCBCBCVCBCBCV ",
+            "BVCCCCCVCCCCCVB",
+            "CHHCCCCVCCCCHHC",
+            "CCV CCCVCCC VCC",
+            "CCHHHCCVCCHHHCC",
+            "CCCCV CVC VCCCC",
+            "CCCCHH V HHCCCC",
+            "CCCCCV V VCCCCC",
+            "CCCCCHHHHHCCCCC"},
+        {"HHHHHHHHHHHHHHS",
+            "V CCBCCCCCBCC V",
+            "HHHCCCCBCCCCHHH",
+            "VBV CCCCCCC VBV",
+            "VCHHHCCCCCHHHCV",
+            "VCCBV CCC VBCCV",
+            "VCCCHHHCHHHCCCV",
+            "VCCCC V V CCCCV",
+            "VCCCCCV VCCCCCV",
+            "HHHHHHHHHHHHHHH"}};
 
     Main(Digger d) {
         dig = d;
     }
 
-    void addlife(int pl) {
+    void addLife(int pl) {
         gameData[pl - 1].lives++;
         dig.sound.sound1Up();
     }
@@ -123,92 +127,96 @@ class Main {
         dig.sound.volume = 1;
     }
 
-    /** Checks if the current level is completed (all emeralds collected or all monsters gone). */
+    /**
+     * Checks if the current level is completed (all emeralds collected or all monsters gone).
+     */
     void checkLevelDone() {
-        if ((dig.countem() == 0 || dig.monster.monleft() == 0) && dig.digonscr)
+        if ((dig.countEmeralds() == 0 || dig.monster.getMonstersLeft() == 0) && dig.digonscr)
             gameData[currentPlayer].levelDone = true;
         else
             gameData[currentPlayer].levelDone = false;
     }
 
-    void cleartopline() {
+    void clearTopLine() {
         dig.drawing.drawText("                          ", 0, 0, 3);
         dig.drawing.drawText(" ", 308, 0, 3);
     }
 
-    void drawscreen() {
+    void drawScreen() {
         dig.drawing.createAllSprites();
         dig.drawing.drawFieldAndBackground();
-        dig.bags.drawbags();
-        dig.drawemeralds();
-        dig.initdigger();
-        dig.monster.initmonsters();
+        dig.bags.drawBags();
+        dig.drawEmeralds();
+        dig.initDigger();
+        dig.monster.initMonsters();
     }
 
-    int getcplayer() {
+    int getCurrentPlayer() {
         return currentPlayer;
     }
 
-    int getlevch(int x, int y, int l) {
+    int getLevelChar(int x, int y, int l) {
         if (l == 0)
             l++;
         return levelData[l - 1][y].charAt(x);
     }
 
-    int getlives(int pl) {
+    int getLives(int pl) {
         return gameData[pl - 1].lives;
     }
 
-    void incpenalty() {
+    void incrementPenalty() {
         penalty++;
     }
 
-    void initchars() {
+    void initChars() {
         dig.drawing.initAllSprites();
-        dig.initdigger();
-        dig.monster.initmonsters();
+        dig.initDigger();
+        dig.monster.initMonsters();
     }
 
-    void initlevel() {
+    void initLevel() {
         gameData[currentPlayer].levelDone = false;
         dig.drawing.buildField();
-        dig.makeemfield();
-        dig.bags.initbags();
+        dig.makeEmeraldField();
+        dig.bags.initBags();
         levelNotDrawn = true;
     }
 
-    int levno() {
+    int getLevelNumber() {
         return gameData[currentPlayer].level;
     }
 
-    int levof10() {
+    int getLevelNumberClampedToTen() {
         if (gameData[currentPlayer].level > 10)
             return 10;
         return gameData[currentPlayer].level;
     }
 
-    int levplan() {
-        int l = levno();
+    int getLevelPlan() {
+        int l = getLevelNumber();
         if (l > 8)
             l = (l & 3) + 5; // Level plan: 12345678, 678, (5678) 247 times, 5 forever
         return l;
     }
 
-    /** Main entry point: title screen → game loop → back to title. */
+    /**
+     * Main entry point: title screen → game loop → back to title.
+     */
     void main() {
         int frame, t, x = 0;
         boolean start;
 
-            dig.time = dig.display.getCurrentTimeMillis();
+        dig.time = dig.display.getCurrentTimeMillis();
         calibrate();
         dig.ftime = speedMul * 2000L;
         dig.sprite.setretr(false);
         dig.display.init();
         dig.sprite.setretr(true);
         dig.display.setPalette(0);
-        dig.input.initkeyb();
-        dig.input.detectjoy();
-        dig.scores.loadscores();
+        dig.input.initKeyboard();
+        dig.input.detectJoystick();
+        dig.scores.loadScores();
         dig.sound.initSound();
 
         dig.scores.run();
@@ -219,23 +227,23 @@ class Main {
             dig.sound.soundStop();
             dig.sprite.setsprorder(digSprOrder);
             dig.drawing.createAllSprites();
-            dig.input.detectjoy();
-dig.display.clearScreen();
+            dig.input.detectJoystick();
+            dig.display.clearScreen();
             dig.display.drawTitleScreen();
             dig.drawing.drawText("D I G G E R", 100, 0, 3);
-            shownplayers();
-            dig.scores.showtable();
+            showPlayers();
+            dig.scores.showTable();
             start = false;
             frame = 0;
 
             dig.time = dig.display.getCurrentTimeMillis();
 
             while (!start) {
-                start = dig.input.teststart();
+                start = dig.input.testStart();
                 if (dig.input.keypressed != 0) {
                     if (dig.input.keypressed == KeyEvent.VK_ESCAPE) {
-                        switchnplayers();
-                        shownplayers();
+                        switchPlayerCount();
+                        showPlayers();
                     }
                     dig.input.akeypressed = 0;
                     dig.input.keypressed = 0;
@@ -315,12 +323,12 @@ dig.display.clearScreen();
                 gameData[1].lives = 3;
             } else
                 gameData[1].lives = 0;
-dig.display.clearScreen();
+            dig.display.clearScreen();
             currentPlayer = 0;
-            initlevel();
+            initLevel();
             currentPlayer = 1;
-            initlevel();
-            dig.scores.zeroscores();
+            initLevel();
+            dig.scores.zeroScores();
             dig.bonusvisible = true;
             if (numPlayers == 2)
                 flashPlayer = true;
@@ -340,22 +348,24 @@ dig.display.clearScreen();
         } while (true);
     }
 
-    /** Single level gameplay loop. */
+    /**
+     * Single level gameplay loop.
+     */
     void play() {
         int t, c;
         if (levelNotDrawn) {
             levelNotDrawn = false;
-            drawscreen();
+            drawScreen();
             dig.time = dig.display.getCurrentTimeMillis();
             if (flashPlayer) {
                 flashPlayer = false;
                 playerDisplayBuffer = "PLAYER ";
                 playerDisplayBuffer += (currentPlayer == 0) ? "1" : "2";
-                cleartopline();
+                clearTopLine();
                 for (t = 0; t < 15; t++)
                     for (c = 1; c <= 3; c++) {
                         dig.drawing.drawText(playerDisplayBuffer, 108, 0, c);
-                        dig.scores.writecurscore(c);
+                        dig.scores.writeCurrentScore(c);
                         dig.newFrame();
                         if (dig.input.escape)
                             return;
@@ -364,76 +374,76 @@ dig.display.clearScreen();
                 dig.scores.addScore(0);
             }
         } else
-            initchars();
+            initChars();
         dig.input.keypressed = 0;
         dig.drawing.drawText("        ", 108, 0, 3);
-        dig.scores.initscores();
+        dig.scores.initScores();
         dig.drawing.drawLives();
         dig.sound.music(1);
-        dig.input.readdir();
-            dig.time = dig.display.getCurrentTimeMillis();
+        dig.input.readDirection();
+        dig.time = dig.display.getCurrentTimeMillis();
         while (!gameData[currentPlayer].dead && !gameData[currentPlayer].levelDone && !dig.input.escape) {
             penalty = 0;
-            dig.dodigger();
-            dig.monster.domonsters();
-            dig.bags.dobags();
+            dig.doDigger();
+            dig.monster.doMonsters();
+            dig.bags.doBags();
             if (penalty > 8)
-                dig.monster.incmont(penalty - 8);
-            testpause();
+                dig.monster.increaseMonsterDelay(penalty - 8);
+            testPause();
             checkLevelDone();
         }
-        dig.erasedigger();
+        dig.eraseDigger();
         dig.sound.musicOff();
         t = 20;
-        while ((dig.bags.getnmovingbags() != 0 || t != 0) && !dig.input.escape) {
+        while ((dig.bags.getMovingBagsCount() != 0 || t != 0) && !dig.input.escape) {
             if (t != 0)
                 t--;
             penalty = 0;
-            dig.bags.dobags();
-            dig.dodigger();
-            dig.monster.domonsters();
+            dig.bags.doBags();
+            dig.doDigger();
+            dig.monster.doMonsters();
             if (penalty < 8)
                 t = 0;
         }
         dig.sound.soundStop();
-        dig.killfire();
-        dig.erasebonus();
-        dig.bags.cleanupbags();
+        dig.killFire();
+        dig.eraseBonus();
+        dig.bags.cleanupBags();
         dig.drawing.saveFieldSnapshot();
-        dig.monster.erasemonsters();
+        dig.monster.eraseMonsters();
         dig.newFrame();
         if (gameData[currentPlayer].levelDone)
             dig.sound.soundLevDone();
-        if (dig.countem() == 0) {
+        if (dig.countEmeralds() == 0) {
             gameData[currentPlayer].level++;
             if (gameData[currentPlayer].level > 1000)
                 gameData[currentPlayer].level = 1000;
-            initlevel();
+            initLevel();
         }
         if (gameData[currentPlayer].dead) {
             gameData[currentPlayer].lives--;
             dig.drawing.drawLives();
             if (gameData[currentPlayer].lives == 0 && !dig.input.escape)
-                dig.scores.endofgame();
+                dig.scores.endOfGame();
         }
         if (gameData[currentPlayer].levelDone) {
             gameData[currentPlayer].level++;
             if (gameData[currentPlayer].level > 1000)
                 gameData[currentPlayer].level = 1000;
-            initlevel();
+            initLevel();
         }
     }
 
-    int randno(int n) {
+    int randomNumber(int n) {
         randSeed = randSeed * 0x15a4e35 + 1;
         return (randSeed & 0x7fffffff) % n;
     }
 
-    void setdead(boolean bp6) {
+    void setDead(boolean bp6) {
         gameData[currentPlayer].dead = bp6;
     }
 
-    void shownplayers() {
+    void showPlayers() {
         if (numPlayers == 1) {
             dig.drawing.drawText("ONE", 220, 25, 3);
             dig.drawing.drawText(" PLAYER ", 192, 39, 3);
@@ -443,17 +453,17 @@ dig.display.clearScreen();
         }
     }
 
-    void switchnplayers() {
+    void switchPlayerCount() {
         numPlayers = 3 - numPlayers;
     }
 
-    void testpause() {
+    void testPause() {
         if (dig.input.akeypressed == 32) { // Space bar
             dig.input.akeypressed = 0;
             dig.sound.soundPause();
             dig.sound.setT2Val(40);
             dig.sound.setSoundT2();
-            cleartopline();
+            clearTopLine();
             dig.drawing.drawText("PAUSED", 124, 0, 1);
             dig.newFrame();
             dig.input.keypressed = 0;
@@ -466,7 +476,7 @@ dig.display.clearScreen();
                     interrupted = true;
                 }
             }
-            cleartopline();
+            clearTopLine();
             dig.scores.drawScores();
             dig.scores.addScore(0);
             dig.drawing.drawLives();

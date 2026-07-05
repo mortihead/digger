@@ -51,14 +51,14 @@ class Scores implements Runnable {
     }
 
     void addScore(int score) {
-        if (dig.main.getcplayer() == 0) {
+        if (dig.main.getCurrentPlayer() == 0) {
             score1 += score;
             if (score1 > 999999l)
                 score1 = 0;
             writenum(score1, 0, 0, 6, 1);
             if (score1 >= nextbs1) {
-                if (dig.main.getlives(1) < 5) {
-                    dig.main.addlife(1);
+                if (dig.main.getLives(1) < 5) {
+                    dig.main.addLife(1);
                     dig.drawing.drawLives();
                 }
                 nextbs1 += bonusscore;
@@ -72,16 +72,16 @@ class Scores implements Runnable {
             else
                 writenum(score2, 248, 0, 6, 1);
             if (score2 > nextbs2) {   /* Player 2 doesn't get the life until >20,000 ! */
-                if (dig.main.getlives(2) < 5) {
-                    dig.main.addlife(2);
+                if (dig.main.getLives(2) < 5) {
+                    dig.main.addLife(2);
                     dig.drawing.drawLives();
                 }
                 nextbs2 += bonusscore;
             }
         }
-        dig.main.incpenalty();
-        dig.main.incpenalty();
-        dig.main.incpenalty();
+        dig.main.incrementPenalty();
+        dig.main.incrementPenalty();
+        dig.main.incrementPenalty();
     }
 
     void drawScores() {
@@ -93,10 +93,10 @@ class Scores implements Runnable {
                 writenum(score2, 248, 0, 6, 3);
     }
 
-    void endofgame() {
+    void endOfGame() {
         int i, j, z;
         addScore(0);
-        if (dig.main.getcplayer() == 0)
+        if (dig.main.getCurrentPlayer() == 0)
             scoret = score1;
         else
             scoret = score2;
@@ -104,20 +104,20 @@ class Scores implements Runnable {
             dig.display.clearScreen();
             drawScores();
             dig.main.playerDisplayBuffer = "PLAYER ";
-            if (dig.main.getcplayer() == 0)
+            if (dig.main.getCurrentPlayer() == 0)
                 dig.main.playerDisplayBuffer += "1";
             else
                 dig.main.playerDisplayBuffer += "2";
 dig.drawing.drawText(dig.main.playerDisplayBuffer, 108, 0, 2, true);
-            getinitials();
+            getInitials();
             _updatescores(_submit(scoreinit[0], (int) scoret));
-            shufflehigh();
+            shuffleHigh();
             // scoreinit[0]
             // scoret, score1
             //
-            savescores();
+            saveScores();
         } else {
-            dig.main.cleartopline();
+            dig.main.clearTopLine();
 dig.drawing.drawText("GAME OVER", 104, 0, 3, true);
             _updatescores(_submit("...", (int) scoret));
             dig.sound.killSound();
@@ -140,14 +140,14 @@ dig.drawing.drawText("         ", 104, 0, 3, true);
     }
 
 
-    void flashywait(int n) {
+    void flashyWait(int n) {
         try {
             Thread.sleep(n * 2);
         } catch (Exception e) {
         }
     }
 
-    int getinitial(int x, int y) {
+    int getInitial(int x, int y) {
         int i, j;
         dig.input.keypressed = 0;
         dig.display.drawChar(x, y, '_', 3, true);
@@ -155,21 +155,21 @@ dig.drawing.drawText("         ", 104, 0, 3, true);
             for (i = 0; i < 40; i++) {
                 if ((dig.input.keypressed & 0x80) == 0 && dig.input.keypressed != 0)
                     return dig.input.keypressed;
-                flashywait(15);
+                flashyWait(15);
             }
             for (i = 0; i < 40; i++) {
                 if ((dig.input.keypressed & 0x80) == 0 && dig.input.keypressed != 0) {
                     dig.display.drawChar(x, y, '_', 3, true);
                     return dig.input.keypressed;
                 }
-                flashywait(15);
+                flashyWait(15);
             }
         }
         gotinitflag = true;
         return 0;
     }
 
-    void getinitials() {
+    void getInitials() {
         int k, i;
 dig.drawing.drawText("ENTER YOUR", 100, 70, 3, true);
         dig.drawing.drawText(" INITIALS", 100, 90, 3, true);
@@ -180,10 +180,10 @@ dig.drawing.drawText("ENTER YOUR", 100, 70, 3, true);
         for (i = 0; i < 3; i++) {
             k = 0;
             while (k == 0 && !gotinitflag) {
-                k = getinitial(i * 24 + 128, 130);
+                k = getInitial(i * 24 + 128, 130);
                 if (i != 0 && k == 8)
                     i--;
-                k = dig.input.getasciikey(dig.input.keypressed);
+                k = dig.input.getAsciiKey(dig.input.keypressed);
             }
             if (k != 0) {
                 dig.display.drawChar(i * 24 + 128, 130, k, 3, true);
@@ -194,7 +194,7 @@ dig.drawing.drawText("ENTER YOUR", 100, 70, 3, true);
         }
         dig.input.keypressed = 0;
         for (i = 0; i < 20; i++)
-            flashywait(15);
+            flashyWait(15);
         dig.sound.setupSound();
 dig.display.clearScreen();
 dig.display.setPalette(0);
@@ -203,13 +203,13 @@ dig.display.setPalette(0);
         dig.sprite.setretr(true);
     }
 
-    void initscores() {
+    void initScores() {
         addScore(0);
     }
 
-    void loadscores() {
+    void loadScores() {
         int p = 1, i, x;
-        readscores();
+        readScores();
         /*
         for (i = 1; i < 11; i++) {
             for (x = 0; x < 3; x++)
@@ -229,7 +229,7 @@ dig.display.setPalette(0);
          */
     }
 
-    private void savescores() {
+    private void saveScores() {
         for (int i = 0; i < MAX_SCORES; i++) {
             prefs.put("name_" + i, scoreinit[i] != null ? scoreinit[i] : "Player");
             prefs.putLong("score_" + i, scorehigh[i]);
@@ -237,7 +237,7 @@ dig.display.setPalette(0);
         System.out.println("Score saved");
     }
 
-    private void readscores() {
+    private void readScores() {
         // Заполняем массивы значениями по умолчанию
         Arrays.fill(scoreinit, "---");
         Arrays.fill(scorehigh, 0L);
@@ -250,7 +250,7 @@ dig.display.setPalette(0);
         System.out.println("Score readed! "+prefs.toString());
     }
 
-    String numtostring(long n) {
+    String numberToString(long n) {
         int x;
         String p = "";
         for (x = 0; x < 6; x++) {
@@ -292,18 +292,18 @@ dig.display.setPalette(0);
         addScore(250);
     }
 
-    void showtable() {
+    void showTable() {
         int i, col;
 dig.drawing.drawText("HIGH SCORES", 16, 25, 3);
         col = 2;
         for (i = 1; i < 11; i++) {
-            hsbuf = scoreinit[i] + "  " + numtostring(scorehigh[i + 1]);
+            hsbuf = scoreinit[i] + "  " + numberToString(scorehigh[i + 1]);
 dig.drawing.drawText(hsbuf, 16, 31 + 13 * i, col);
             col = 1;
         }
     }
 
-    void shufflehigh() {
+    void shuffleHigh() {
         int i, j;
         for (j = 10; j > 1; j--)
             if (scoret < scorehigh[j])
@@ -316,8 +316,8 @@ dig.drawing.drawText(hsbuf, 16, 31 + 13 * i, col);
         scoreinit[j] = scoreinit[0];
     }
 
-    void writecurscore(int bp6) {
-        if (dig.main.getcplayer() == 0)
+    void writeCurrentScore(int bp6) {
+        if (dig.main.getCurrentPlayer() == 0)
             writenum(score1, 0, 0, 6, bp6);
         else if (score2 < 100000l)
             writenum(score2, 236, 0, 6, bp6);
@@ -337,7 +337,7 @@ dig.drawing.drawText(hsbuf, 16, 31 + 13 * i, col);
         }
     }
 
-    void zeroscores() {
+    void zeroScores() {
         score2 = 0;
         score1 = 0;
         scoret = 0;

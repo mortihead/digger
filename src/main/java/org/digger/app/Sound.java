@@ -608,7 +608,7 @@ class Sound {
             if (soundfiren == 1) {
                 soundfiren = 0;
                 soundfirevalue += soundfirevalue / 55;
-                t2val = soundfirevalue + dig.main.randno(soundfirevalue >> 3);
+                t2val = soundfirevalue + dig.main.randomNumber(soundfirevalue >> 3);
                 if (soundfirevalue > 30000)
                     soundFireOff();
             } else

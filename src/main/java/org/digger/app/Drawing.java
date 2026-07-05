@@ -279,13 +279,13 @@ class Drawing {
      */
     void drawLives() {
         int l, n;
-        n = dig.main.getlives(1) - 1;
+        n = dig.main.getLives(1) - 1;
         for (l = 1; l < 5; l++) {
             drawLife(n > 0 ? 0 : 2, l * 20 + 60, 0);
             n--;
         }
         if (dig.main.numPlayers == 2) {
-            n = dig.main.getlives(2) - 1;
+            n = dig.main.getLives(2) - 1;
             for (l = 1; l < 5; l++) {
                 drawLife(n > 0 ? 1 : 2, 244 - l * 20, 0);
                 n--;
@@ -366,14 +366,14 @@ class Drawing {
         int x, y;
         for (x = 0; x < FIELD_WIDTH; x++)
             for (y = 0; y < FIELD_HEIGHT; y++)
-                if (dig.main.getcplayer() == 0)
+                if (dig.main.getCurrentPlayer() == 0)
                     field[y * FIELD_WIDTH + x] = field1[y * FIELD_WIDTH + x];
                 else
                     field[y * FIELD_WIDTH + x] = field2[y * FIELD_WIDTH + x];
         dig.sprite.setretr(true);
         dig.display.setPalette(0);
         dig.display.setIntensity(0);
-        drawBackground(dig.main.levplan());
+        drawBackground(dig.main.getLevelPlan());
         drawField();
         dig.display.currentSource.newPixels(0, 0, dig.display.width, dig.display.height);
     }
@@ -398,7 +398,7 @@ class Drawing {
     void digTunnel(int x, int y, int dir) {
         int h = (x - 12) / 20, xr = ((x - 12) % 20) / 4;
         int v = (y - 18) / 18, yr = ((y - 18) % 18) / 3;
-        dig.main.incpenalty();
+        dig.main.incrementPenalty();
         switch (dir) {
             case 0:
                 h++;
@@ -487,12 +487,12 @@ class Drawing {
         for (x = 0; x < FIELD_WIDTH; x++)
             for (y = 0; y < FIELD_HEIGHT; y++) {
                 field[y * FIELD_WIDTH + x] = -1;
-                c = dig.main.getlevch(x, y, dig.main.levplan());
+                c = dig.main.getLevelChar(x, y, dig.main.getLevelPlan());
                 if (c == 'S' || c == 'V')
                     field[y * FIELD_WIDTH + x] &= CLEAR_HORIZONTAL;
                 if (c == 'S' || c == 'H')
                     field[y * FIELD_WIDTH + x] &= CLEAR_VERTICAL;
-                if (dig.main.getcplayer() == 0)
+                if (dig.main.getCurrentPlayer() == 0)
                     field1[y * FIELD_WIDTH + x] = field[y * FIELD_WIDTH + x];
                 else
                     field2[y * FIELD_WIDTH + x] = field[y * FIELD_WIDTH + x];
@@ -528,7 +528,7 @@ class Drawing {
         int x, y;
         for (x = 0; x < FIELD_WIDTH; x++)
             for (y = 0; y < FIELD_HEIGHT; y++)
-                if (dig.main.getcplayer() == 0)
+                if (dig.main.getCurrentPlayer() == 0)
                     field1[y * FIELD_WIDTH + x] = field[y * FIELD_WIDTH + x];
                 else
                     field2[y * FIELD_WIDTH + x] = field[y * FIELD_WIDTH + x];

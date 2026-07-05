@@ -33,12 +33,12 @@ class Input {
         }
     }
 
-    void detectjoy() {
+    void detectJoystick() {
         joyflag = false;
         staticdir = dynamicdir = -1;
     }
 
-    int getasciikey(int make) {
+    int getAsciiKey(int make) {
         if ((make == ' ') || ((make >= 'a') && (make <= 'z')) || ((make >= 'A') && (make <= 'Z'))
                 || ((make >= '0') && (make <= '9')))
             return make;
@@ -46,64 +46,64 @@ class Input {
             return 0;
     }
 
-    int getdir() {
+    int getDirection() {
         return keydir;
     }
 
-    void initkeyb() {
+    void initKeyboard() {
     }
 
-    void Key_downpressed() {
+    void keyDownPressed() {
         downpressed = true;
         dynamicdir = staticdir = 6;
     }
 
-    void Key_downreleased() {
+    void keyDownReleased() {
         downpressed = false;
         if (dynamicdir == 6)
-            setdirec();
+            setDirection();
     }
 
-    void Key_f1pressed() {
+    void keyF1Pressed() {
         firepressed = true;
         f1pressed = true;
     }
 
-    void Key_f1released() {
+    void keyF1Released() {
         f1pressed = false;
     }
 
-    void Key_leftpressed() {
+    void keyLeftPressed() {
         leftpressed = true;
         dynamicdir = staticdir = 4;
     }
 
-    void Key_leftreleased() {
+    void keyLeftReleased() {
         leftpressed = false;
         if (dynamicdir == 4)
-            setdirec();
+            setDirection();
     }
 
-    void Key_rightpressed() {
+    void keyRightPressed() {
         rightpressed = true;
         dynamicdir = staticdir = 0;
     }
 
-    void Key_rightreleased() {
+    void keyRightReleased() {
         rightpressed = false;
         if (dynamicdir == 0)
-            setdirec();
+            setDirection();
     }
 
-    void Key_uppressed() {
+    void keyUpPressed() {
         uppressed = true;
         dynamicdir = staticdir = 2;
     }
 
-    void Key_upreleased() {
+    void keyUpReleased() {
         uppressed = false;
         if (dynamicdir == 2)
-            setdirec();
+            setDirection();
     }
 
     void processkey(int key) {
@@ -116,7 +116,7 @@ class Input {
      * Direction is preserved while the key is held,
      * even if the digger can't turn yet (grid alignment).
      */
-    void readdir() {
+    void readDirection() {
         if (dynamicdir != -1)
             keydir = dynamicdir;
         else {
@@ -131,7 +131,7 @@ class Input {
         firepressed = false;
     }
 
-    void setdirec() {
+    void setDirection() {
         dynamicdir = -1;
         if (uppressed) dynamicdir = staticdir = 2;
         if (downpressed) dynamicdir = staticdir = 6;
@@ -139,7 +139,7 @@ class Input {
         if (rightpressed) dynamicdir = staticdir = 0;
     }
 
-    boolean teststart() {
+    boolean testStart() {
         if (keypressed != 0 && (keypressed & 0x80) == 0 && keypressed != 27) {
             joyflag = false;
             keypressed = 0;
