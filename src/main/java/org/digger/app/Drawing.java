@@ -370,7 +370,6 @@ class Drawing {
                     field[y * FIELD_WIDTH + x] = field1[y * FIELD_WIDTH + x];
                 else
                     field[y * FIELD_WIDTH + x] = field2[y * FIELD_WIDTH + x];
-        dig.sprite.setretr(true);
         dig.display.setPalette(0);
         dig.display.setIntensity(0);
         drawBackground(dig.main.getLevelPlan());

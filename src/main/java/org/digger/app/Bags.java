@@ -142,7 +142,7 @@ class Bags {
         int clbits = dig.drawing.drawGold(bag, 6, bagdat[bag].x, bagdat[bag].y);
         dig.main.incrementPenalty();
         if ((clbits & 1) != 0) {
-            dig.scores.scoregold();
+            dig.scores.scoreGold();
             dig.sound.soundGold();
             dig.digtime = 0;
         } else

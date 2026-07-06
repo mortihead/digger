@@ -48,7 +48,7 @@ public class Digger extends Frame implements Runnable {
     int diggerx = 0, diggery = 0, diggerh = 0, diggerv = 0, diggerrx = 0, diggerry = 0, digmdir = 0,
             digdir = 0, digtime = 0, rechargetime = 0, firex = 0, firey = 0, firedir = 0, expsn = 0,
             deathstage = 0, deathbag = 0, deathani = 0, deathtime = 0, startbonustimeleft = 0,
-            bonustimeleft = 0, eatmsc = 0, emocttime = 0;
+            bonustimeleft = 0, monsterEatMultiplier = 0, emocttime = 0;
 
     int emmask = 0;
 
@@ -411,7 +411,7 @@ public class Digger extends Frame implements Runnable {
         display.setIntensity(1);
         bonustimeleft = 250 - main.getLevelNumberClampedToTen() * 20;
         startbonustimeleft = 20;
-        eatmsc = 1;
+        monsterEatMultiplier = 1;
     }
 
     void initDigger() {
@@ -680,7 +680,7 @@ public class Digger extends Frame implements Runnable {
         }
         if (hitemerald((diggerx - 12) / 20, (diggery - 18) / 18, (diggerx - 12) % 20,
                 (diggery - 18) % 18, digmdir)) {
-            scores.scoreemerald();
+            scores.scoreEmerald();
             sound.soundEm();
             sound.soundEmerald(emocttime);
             emocttime = 9;
@@ -715,10 +715,10 @@ public class Digger extends Frame implements Runnable {
         if (((clbits & 0x3f00) != 0) && bonusmode)
             for (nmon = monster.killmonsters(clbits); nmon != 0; nmon--) {
                 sound.soundEatm();
-                scores.scoreeatm();
+                scores.scoreEatMonster();
             }
         if ((clbits & 0x4000) != 0) {
-            scores.scorebonus();
+            scores.scoreBonus();
             initbonusmode();
         }
         diggerh = (diggerx - 12) / 20;
@@ -788,7 +788,7 @@ public class Digger extends Frame implements Runnable {
                 for (mon = 0, b = 256; mon < 6; mon++, b <<= 1)
                     if ((clbits & b) != 0) {
                         monster.killMonster(mon);
-                        scores.scorekill();
+                        scores.scoreKillMonster();
                         expsn = 1;
                     }
             if ((clbits & 0x40fe) != 0)

@@ -5,53 +5,30 @@ import java.util.prefs.Preferences;
 
 class Scores implements Runnable {
     private static final int MAX_SCORES = 11;
+    private static final int PLAYER_ONE = 0;
+    private static final int PLAYER_TWO = 1;
     private static Preferences prefs = Preferences.userNodeForPackage(Scores.class);
 
     Digger dig;
-    Object[][] scores;
     String substr;
 
     char highbuf[] = new char[10];
-    long scorehigh[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};    // [12]
+    long scoreHigh[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};    // [12]
     String scoreinit[] = new String[MAX_SCORES];
-    long scoret = 0, score1 = 0, score2 = 0, nextbs1 = 0, nextbs2 = 0;
+    long finalScore = 0, score1 = 0, score2 = 0, nextbs1 = 0, nextbs2 = 0;
     String hsbuf;
     char scorebuf[] = new char[512];
-    int bonusscore = 20000;
+    int bonusScore = 20000;
     boolean gotinitflag = false;
 
     Scores(Digger d) {
         dig = d;
     }
 
-    public Object[][] _submit(String n, int s) {
-        return scores;
-    }
 
-    public void _updatescores(Object[][] o) {
-
-        if (o == null)
-            return;
-        if (1 == 1) return;
-        try {
-            String[] in = new String[10];
-            int[] sc = new int[10];
-            for (int i = 0; i < 10; i++) {
-                in[i] = (String) o[i][0];
-                sc[i] = ((Integer) o[i][1]).intValue();
-            }
-            for (int i = 0; i < 10; i++) {
-                scoreinit[i + 1] = in[i];
-                scorehigh[i + 2] = sc[i];
-            }
-        } catch (Exception e) {
-        }
-        ;
-
-    }
 
     void addScore(int score) {
-        if (dig.main.getCurrentPlayer() == 0) {
+        if (dig.main.getCurrentPlayer() == PLAYER_ONE) {
             score1 += score;
             if (score1 > 999999l)
                 score1 = 0;
@@ -61,7 +38,7 @@ class Scores implements Runnable {
                     dig.main.addLife(1);
                     dig.drawing.drawLives();
                 }
-                nextbs1 += bonusscore;
+                nextbs1 += bonusScore;
             }
         } else {
             score2 += score;
@@ -76,7 +53,7 @@ class Scores implements Runnable {
                     dig.main.addLife(2);
                     dig.drawing.drawLives();
                 }
-                nextbs2 += bonusscore;
+                nextbs2 += bonusScore;
             }
         }
         dig.main.incrementPenalty();
@@ -94,48 +71,43 @@ class Scores implements Runnable {
     }
 
     void endOfGame() {
-        int i, j, z;
+        int i, j;
         addScore(0);
-        if (dig.main.getCurrentPlayer() == 0)
-            scoret = score1;
+        if (dig.main.getCurrentPlayer() == PLAYER_ONE)
+            finalScore = score1;
         else
-            scoret = score2;
-        if (scoret > scorehigh[11]) {
+            finalScore = score2;
+        // scorehigh[11] holds the lowest score in the top-10 table (10th place).
+        // If current score is higher, the player qualifies for the high score list.
+        if (finalScore > scoreHigh[11]) {
             dig.display.clearScreen();
             drawScores();
             dig.main.playerDisplayBuffer = "PLAYER ";
-            if (dig.main.getCurrentPlayer() == 0)
+            if (dig.main.getCurrentPlayer() == PLAYER_ONE)
                 dig.main.playerDisplayBuffer += "1";
             else
                 dig.main.playerDisplayBuffer += "2";
-dig.drawing.drawText(dig.main.playerDisplayBuffer, 108, 0, 2, true);
+            dig.drawing.drawText(dig.main.playerDisplayBuffer, 108, 0, 2, true);
             getInitials();
-            _updatescores(_submit(scoreinit[0], (int) scoret));
             shuffleHigh();
             // scoreinit[0]
-            // scoret, score1
+            // finalScore, score1
             //
             saveScores();
         } else {
             dig.main.clearTopLine();
-dig.drawing.drawText("GAME OVER", 104, 0, 3, true);
-            _updatescores(_submit("...", (int) scoret));
+            dig.drawing.drawText("GAME OVER", 104, 0, 3, true);
             dig.sound.killSound();
             for (j = 0; j < 20; j++) /* Number of times screen flashes * 2 */
                 for (i = 0; i < 2; i++) { //i<8;i++) {
-                    dig.sprite.setretr(true);
-//		dig.Pc.ginten(1);
                     dig.display.setPalette(1 - (j & 1));
-                    dig.sprite.setretr(false);
-                    for (z = 0; z < 111; z++) ; /* A delay loop */
+                    flashyWait(1);  // Brief pause between palette changes
                     dig.display.setPalette(0);
-//		dig.Pc.ginten(0);
                     dig.display.setIntensity(1 - i & 1);
                     dig.newFrame();
                 }
             dig.sound.setupSound();
-dig.drawing.drawText("         ", 104, 0, 3, true);
-            dig.sprite.setretr(true);
+            dig.drawing.drawText("         ", 104, 0, 3, true);
         }
     }
 
@@ -147,18 +119,29 @@ dig.drawing.drawText("         ", 104, 0, 3, true);
         }
     }
 
+    /**
+     * Checks if the key code is a regular printable character.
+     * Function keys (F1-F10) have the 0x80 bit set and are excluded.
+     *
+     * @param kp key code from Input.keypressed
+     * @return true if it's a regular character (A-Z, digits, etc.), false for function keys
+     */
+    private boolean isRegularKey(int kp) {
+        return kp != 0 && (kp & 0x80) == 0;
+    }
+
     int getInitial(int x, int y) {
         int i, j;
         dig.input.keypressed = 0;
         dig.display.drawChar(x, y, '_', 3, true);
         for (j = 0; j < 5; j++) {
             for (i = 0; i < 40; i++) {
-                if ((dig.input.keypressed & 0x80) == 0 && dig.input.keypressed != 0)
+                if (isRegularKey(dig.input.keypressed))
                     return dig.input.keypressed;
                 flashyWait(15);
             }
             for (i = 0; i < 40; i++) {
-                if ((dig.input.keypressed & 0x80) == 0 && dig.input.keypressed != 0) {
+                if (isRegularKey(dig.input.keypressed)) {
                     dig.display.drawChar(x, y, '_', 3, true);
                     return dig.input.keypressed;
                 }
@@ -171,7 +154,7 @@ dig.drawing.drawText("         ", 104, 0, 3, true);
 
     void getInitials() {
         int k, i;
-dig.drawing.drawText("ENTER YOUR", 100, 70, 3, true);
+        dig.drawing.drawText("ENTER YOUR", 100, 70, 3, true);
         dig.drawing.drawText(" INITIALS", 100, 90, 3, true);
         dig.drawing.drawText("_ _ _", 128, 130, 3, true);
         scoreinit[0] = "...";
@@ -196,11 +179,10 @@ dig.drawing.drawText("ENTER YOUR", 100, 70, 3, true);
         for (i = 0; i < 20; i++)
             flashyWait(15);
         dig.sound.setupSound();
-dig.display.clearScreen();
-dig.display.setPalette(0);
+        dig.display.clearScreen();
+        dig.display.setPalette(0);
         dig.display.setIntensity(0);
         dig.newFrame();    // needed by Java version!!
-        dig.sprite.setretr(true);
     }
 
     void initScores() {
@@ -208,31 +190,13 @@ dig.display.setPalette(0);
     }
 
     void loadScores() {
-        int p = 1, i, x;
         readScores();
-        /*
-        for (i = 1; i < 11; i++) {
-            for (x = 0; x < 3; x++)
-                scoreinit[i] = "..."; //  scorebuf[p++];	--- zmienic
-            p += 2;
-            for (x = 0; x < 6; x++)
-                highbuf[x] = scorebuf[p++];
-            scorehigh[i + 1] = 0; //atol(highbuf);
-        }
-        if (scorebuf[0] != 's')
-            for (i = 0; i < 11; i++) {
-                scorehigh[i + 1] = 0;
-                scoreinit[i] = "...";
-            }
-        scorehigh[1] = 1;
-
-         */
     }
 
     private void saveScores() {
         for (int i = 0; i < MAX_SCORES; i++) {
             prefs.put("name_" + i, scoreinit[i] != null ? scoreinit[i] : "Player");
-            prefs.putLong("score_" + i, scorehigh[i]);
+            prefs.putLong("score_" + i, scoreHigh[i]);
         }
         System.out.println("Score saved");
     }
@@ -240,14 +204,38 @@ dig.display.setPalette(0);
     private void readScores() {
         // Заполняем массивы значениями по умолчанию
         Arrays.fill(scoreinit, "---");
-        Arrays.fill(scorehigh, 0L);
+        Arrays.fill(scoreHigh, 0L);
 
         // Загружаем сохраненные значения
         for (int i = 0; i < MAX_SCORES; i++) {
             scoreinit[i] = prefs.get("name_" + i, "---");
-            scorehigh[i] = prefs.getLong("score_" + i, 0L);
+            scoreHigh[i] = prefs.getLong("score_" + i, 0L);
         }
-        System.out.println("Score readed! "+prefs.toString());
+        System.out.println("\n╔══════════════════════════════════════╗");
+        System.out.println("║       DIGGER - Game Controls         ║");
+        System.out.println("╠══════════════════════════════════════╣");
+        System.out.println("║                                      ║");
+        System.out.println("║  Movement:                           ║");
+        System.out.println("║    ← → ↑ ↓ / Arrow keys              ║");
+        System.out.println("║                                      ║");
+        System.out.println("║  Actions:                            ║");
+        System.out.println("║    Enter    - Start game             ║");
+        System.out.println("║    Space    - Pause/Resume           ║");
+        System.out.println("║    Escape   - Switch between 1       ║");
+        System.out.println("║               and 2 players (title)  ║");
+        System.out.println("║    F1       - Fire (shoot)           ║");
+        System.out.println("║    F10	  - Return to title screen ║");
+        System.out.println("║                                      ║");
+        System.out.println("║  Sound:                              ║");
+        System.out.println("║    F7          - Toggle music        ║");
+        System.out.println("║    F9          - Toggle SFX          ║");
+        System.out.println("║                                      ║");
+        System.out.println("║  Game modes:                         ║");
+        System.out.println("║    1 Player  - Single player         ║");
+        System.out.println("║    2 Players - Versus mode           ║");
+        System.out.println("║                                      ║");
+        System.out.println("╚══════════════════════════════════════╝\n");
+        System.out.println("Score loaded: " + prefs.toString() + "\n");
     }
 
     String numberToString(long n) {
@@ -267,38 +255,58 @@ dig.display.setPalette(0);
     }
 
 
-    void scorebonus() {
+    /**
+     * Awards 1000 points for eating a bonus.
+     */
+    void scoreBonus() {
         addScore(1000);
     }
 
-    void scoreeatm() {
-        addScore(dig.eatmsc * 200);
-        dig.eatmsc <<= 1;
+    /**
+     * Award points for eating a monster while bonus mode is active.
+     * Each eaten monster doubles the reward for the next one.
+     * Base score is eatmsc * 200.
+     */
+    void scoreEatMonster() {
+        addScore(dig.monsterEatMultiplier * 200);
+        dig.monsterEatMultiplier <<= 1;
     }
 
-    void scoreemerald() {
+    /**
+     * Awards 25 points for eating an emerald.
+     */
+    void scoreEmerald() {
         addScore(25);
     }
 
-    void scoregold() {
+    /**
+     * Awards 500 points for eating a bag of gold.
+     */
+    void scoreGold() {
         addScore(500);
     }
 
-    void scorekill() {
+    /**
+     * Awards 250 points for killing a monster.
+     */
+    void scoreKillMonster() {
         addScore(250);
     }
 
-    void scoreoctave() {
+    /**
+     * Awards 250 points for eating an 'O' (octave bonus).
+     */
+    void scoreOctave() {
         addScore(250);
     }
 
     void showTable() {
         int i, col;
-dig.drawing.drawText("HIGH SCORES", 16, 25, 3);
+        dig.drawing.drawText("HIGH SCORES", 16, 25, 3);
         col = 2;
         for (i = 1; i < 11; i++) {
-            hsbuf = scoreinit[i] + "  " + numberToString(scorehigh[i + 1]);
-dig.drawing.drawText(hsbuf, 16, 31 + 13 * i, col);
+            hsbuf = scoreinit[i] + "  " + numberToString(scoreHigh[i + 1]);
+            dig.drawing.drawText(hsbuf, 16, 31 + 13 * i, col);
             col = 1;
         }
     }
@@ -306,18 +314,18 @@ dig.drawing.drawText(hsbuf, 16, 31 + 13 * i, col);
     void shuffleHigh() {
         int i, j;
         for (j = 10; j > 1; j--)
-            if (scoret < scorehigh[j])
+            if (finalScore < scoreHigh[j])
                 break;
         for (i = 10; i > j; i--) {
-            scorehigh[i + 1] = scorehigh[i];
+            scoreHigh[i + 1] = scoreHigh[i];
             scoreinit[i] = scoreinit[i - 1];
         }
-        scorehigh[j + 1] = scoret;
+        scoreHigh[j + 1] = finalScore;
         scoreinit[j] = scoreinit[0];
     }
 
     void writeCurrentScore(int bp6) {
-        if (dig.main.getCurrentPlayer() == 0)
+        if (dig.main.getCurrentPlayer() == PLAYER_ONE)
             writenum(score1, 0, 0, 6, bp6);
         else if (score2 < 100000l)
             writenum(score2, 236, 0, 6, bp6);
@@ -340,9 +348,9 @@ dig.drawing.drawText(hsbuf, 16, 31 + 13 * i, col);
     void zeroScores() {
         score2 = 0;
         score1 = 0;
-        scoret = 0;
-        nextbs1 = bonusscore;
-        nextbs2 = bonusscore;
+        finalScore = 0;
+        nextbs1 = bonusScore;
+        nextbs2 = bonusScore;
     }
 
     @Override

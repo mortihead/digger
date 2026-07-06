@@ -11,8 +11,6 @@ class Sprite {
 
     Digger dig;
 
-    boolean retrflag = true;
-
     boolean[] sprDrawFlag = new boolean[17];
     boolean[] sprRecFlag = new boolean[17];
     boolean[] sprEnabled = new boolean[16];
@@ -254,9 +252,6 @@ class Sprite {
         }
     }
 
-    void setretr(boolean f) {
-        retrflag = f;
-    }
 
     void setsprorder(int[] newsprorder) {
         if (newsprorder == null)

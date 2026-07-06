@@ -498,7 +498,7 @@ class Sound {
                     break;
                 case 0x4b8:
                     emerfreq = 0x474;
-                    dig.scores.scoreoctave();
+                    dig.scores.scoreOctave();
                     break;
                 case 0x474:
                     emerfreq = 0x8e8;

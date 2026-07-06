@@ -374,7 +374,7 @@ class Monster {
         if (((clbits & 1) != 0) && dig.digonscr)
             if (dig.bonusmode) {
                 killMonster(mon);
-                dig.scores.scoreeatm();
+                dig.scores.scoreEatMonster();
                 dig.sound.soundEatm();
             } else
                 dig.killdigger(3, 0);
@@ -404,7 +404,7 @@ class Monster {
                     mondat[mon].deathTime--;
                 else {
                     killMonster(mon);
-                    dig.scores.scorekill();
+                    dig.scores.scoreKillMonster();
                 }
         }
     }

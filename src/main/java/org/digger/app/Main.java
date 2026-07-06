@@ -210,9 +210,7 @@ class Main {
         dig.time = dig.display.getCurrentTimeMillis();
         calibrate();
         dig.ftime = speedMul * 2000L;
-        dig.sprite.setretr(false);
         dig.display.init();
-        dig.sprite.setretr(true);
         dig.display.setPalette(0);
         dig.input.initKeyboard();
         dig.input.detectJoystick();
@@ -220,7 +218,6 @@ class Main {
         dig.sound.initSound();
 
         dig.scores.run();
-        dig.scores._updatescores(dig.scores.scores);
 
         numPlayers = 1;
         do {
