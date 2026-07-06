@@ -42,6 +42,7 @@ public class Digger extends Frame implements Runnable {
     Drawing drawing;
     Input input;
     CgaDisplay display;
+    private final GameCanvas canvas = new GameCanvas();
 
     // ----- Digger state -----
 
@@ -68,6 +69,11 @@ public class Digger extends Frame implements Runnable {
         this.parameters = new HashMap<>();
         loadParameters(INI_FILE);
         scaleFactor = Math.max(1, Integer.parseInt(getParameter("scale_factor", "2")));
+
+        canvas.setFocusable(false);
+        setLayout(new BorderLayout());
+        add(canvas, BorderLayout.CENTER);
+
         configureWindowBounds();
 
         bags = new Bags(this);
@@ -394,7 +400,7 @@ public class Digger extends Frame implements Runnable {
                     new IndexColorModel(8, 4, display.palettes[i][0], display.palettes[i][1], display.palettes[i][2]),
                     display.pixels, 0, display.width);
             display.source[i].setAnimated(true);
-            display.image[i] = createImage(display.source[i]);
+            display.image[i] = canvas.createImage(display.source[i]);
             display.source[i].newPixels();
         }
 
@@ -559,10 +565,6 @@ public class Digger extends Frame implements Runnable {
         display.currentSource.newPixels();
     }
 
-    public void paint(Graphics g) {
-        update(g);
-    }
-
     int reversedir(int dir) {
         switch (dir) {
             case 0:
@@ -581,21 +583,24 @@ public class Digger extends Frame implements Runnable {
         main.main();
     }
 
-    public void update(Graphics g) {
-        if (!Objects.isNull(g)) {
-            int originalWidth = display.currentImage.getWidth(this);
-            int originalHeight = display.currentImage.getHeight(this);
-            int newWidth = originalWidth * scaleFactor;
-            int newHeight = originalHeight * scaleFactor;
-            Insets insets = getInsets();
-            g.drawImage(display.currentImage, insets.left, insets.top, newWidth, newHeight, this);
+    /** Renders the CGA framebuffer with no manual inset math; the canvas's own origin is the content area. */
+    private final class GameCanvas extends Canvas {
+        @Override
+        public void paint(Graphics g) {
+            update(g);
+        }
+
+        @Override
+        public void update(Graphics g) {
+            if (!Objects.isNull(g) && !Objects.isNull(display) && !Objects.isNull(display.currentImage)) {
+                int originalWidth = display.currentImage.getWidth(this);
+                int originalHeight = display.currentImage.getHeight(this);
+                g.drawImage(display.currentImage, 0, 0, originalWidth * scaleFactor, originalHeight * scaleFactor, this);
+            }
         }
     }
 
     private void configureWindowBounds() {
-        if (!isDisplayable())
-            addNotify();
-
         GraphicsConfiguration configuration = getGraphicsConfiguration();
         if (Objects.isNull(configuration)) {
             configuration = GraphicsEnvironment.getLocalGraphicsEnvironment()
@@ -604,20 +609,24 @@ public class Digger extends Frame implements Runnable {
         }
 
         Rectangle usableBounds = getUsableScreenBounds(configuration);
-        Insets windowInsets = getInsets();
 
-        int horizontalInsets = windowInsets.left + windowInsets.right;
-        int verticalInsets = windowInsets.top + windowInsets.bottom;
-        int maxScaleByWidth = Math.max(1, (usableBounds.width - horizontalInsets) / width);
-        int maxScaleByHeight = Math.max(1, (usableBounds.height - verticalInsets) / height);
-        scaleFactor = Math.max(1, Math.min(scaleFactor, Math.min(maxScaleByWidth, maxScaleByHeight)));
+        int maxScale = Math.max(1, Math.min(usableBounds.width / width, usableBounds.height / height));
+        scaleFactor = Math.max(1, Math.min(scaleFactor, maxScale));
 
-        int windowWidth = width * scaleFactor + horizontalInsets;
-        int windowHeight = height * scaleFactor + verticalInsets;
-        int x = usableBounds.x + Math.max(0, (usableBounds.width - windowWidth) / 2);
-        int y = usableBounds.y + Math.max(0, (usableBounds.height - windowHeight) / 2);
+        canvas.setPreferredSize(new Dimension(width * scaleFactor, height * scaleFactor));
+        pack();
 
-        setBounds(x, y, windowWidth, windowHeight);
+        // pack() sizes the window from the canvas's preferred size plus whatever insets the
+        // window manager reports at that moment; re-shrink and re-pack if that still overshoots
+        // the usable screen area instead of trusting a single inset reading.
+        while (scaleFactor > 1 && (getWidth() > usableBounds.width || getHeight() > usableBounds.height)) {
+            scaleFactor--;
+            canvas.setPreferredSize(new Dimension(width * scaleFactor, height * scaleFactor));
+            pack();
+        }
+
+        setLocation(usableBounds.x + Math.max(0, (usableBounds.width - getWidth()) / 2),
+                usableBounds.y + Math.max(0, (usableBounds.height - getHeight()) / 2));
     }
 
     private Rectangle getUsableScreenBounds(GraphicsConfiguration configuration) {
