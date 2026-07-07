@@ -1,10 +1,13 @@
 package org.digger.app;
 
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferStrategy;
 import java.awt.image.IndexColorModel;
 import java.awt.image.MemoryImageSource;
 import java.util.Objects;
@@ -539,14 +542,30 @@ public class Digger extends Frame implements Runnable {
      * возникающем при произвольном изменении размера окна.
      */
     private final class GameCanvas extends Canvas {
+        private BufferStrategy bufferStrategy;
+
+        GameCanvas() {
+            // Пересоздаём стратегию буферизации после ресайза — старая привязана к прежнему размеру поверхности.
+            addComponentListener(new ComponentAdapter() {
+                @Override
+                public void componentResized(ComponentEvent e) {
+                    bufferStrategy = null;
+                }
+            });
+        }
+
         @Override
         public void paint(Graphics g) {
-            update(g);
+            render();
         }
 
         @Override
         public void update(Graphics g) {
-            if (Objects.isNull(g) || Objects.isNull(display) || Objects.isNull(display.currentImage))
+            render();
+        }
+
+        private void render() {
+            if (Objects.isNull(display) || Objects.isNull(display.currentImage))
                 return;
 
             int canvasWidth = getWidth();
@@ -556,18 +575,34 @@ public class Digger extends Frame implements Runnable {
             if (canvasWidth <= 0 || canvasHeight <= 0 || originalWidth <= 0 || originalHeight <= 0)
                 return;
 
+            if (Objects.isNull(bufferStrategy)) {
+                createBufferStrategy(2);
+                bufferStrategy = getBufferStrategy();
+                if (Objects.isNull(bufferStrategy))
+                    return;
+            }
+
             double scale = Math.min((double) canvasWidth / originalWidth, (double) canvasHeight / originalHeight);
             int drawWidth = (int) Math.round(originalWidth * scale);
             int drawHeight = (int) Math.round(originalHeight * scale);
             int offsetX = (canvasWidth - drawWidth) / 2;
             int offsetY = (canvasHeight - drawHeight) / 2;
 
-            g.setColor(Color.BLACK);
-            g.fillRect(0, 0, canvasWidth, canvasHeight);
-            if (g instanceof Graphics2D)
-                ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                        RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-            g.drawImage(display.currentImage, offsetX, offsetY, drawWidth, drawHeight, this);
+            // Рисуем в задний буфер и показываем его атомарно через show() — без двойной
+            // буферизации кадр рисовался прямо на видимой поверхности (сначала чёрная заливка,
+            // потом картинка), что на Windows/Linux было заметно как мерцание между кадрами.
+            Graphics g = bufferStrategy.getDrawGraphics();
+            try {
+                g.setColor(Color.BLACK);
+                g.fillRect(0, 0, canvasWidth, canvasHeight);
+                if (g instanceof Graphics2D)
+                    ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                            RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+                g.drawImage(display.currentImage, offsetX, offsetY, drawWidth, drawHeight, this);
+            } finally {
+                g.dispose();
+            }
+            bufferStrategy.show();
         }
     }
 
