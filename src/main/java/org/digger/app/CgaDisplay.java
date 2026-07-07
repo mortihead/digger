@@ -226,7 +226,7 @@ class CgaDisplay {
 
     /**
      * Draws a single character from the CGA font bitmap.
-     * Characters are 12×12 pixels, looked up from {@link Alphabet#ascii2cga}.
+     * Characters are 12×12 pixels, looked up from {@link Alphabet#CGA_ASCII_TABLE}.
      *
      * @param x     left edge in pixels
      * @param y     top edge in pixels
@@ -239,7 +239,7 @@ class CgaDisplay {
         ch -= 32;
         if ((ch < 0) || (ch > 0x5f))
             return;
-        short[] chartab = Alphabet.ascii2cga[ch];
+        short[] chartab = Alphabet.CGA_ASCII_TABLE[ch];
         if (chartab == null)
             return;
         for (int i = 0; i < 12; i++) {

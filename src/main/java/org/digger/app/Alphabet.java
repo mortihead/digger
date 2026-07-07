@@ -2,7 +2,7 @@ package org.digger.app;
 
 abstract class Alphabet {
 
-    static short cgaletA[] = {
+    static final short[] CGA_LETTER_A = {
             0x0f, 0xff, 0x00,
             0x3f, 0xff, 0xc0,
             0x3c, 0x03, 0xc0,
@@ -16,7 +16,7 @@ abstract class Alphabet {
             0xfc, 0x00, 0xf0,
             0xfc, 0x00, 0xf0};
 
-    static short cgaletB[] = {
+    static final short[] CGA_LETTER_B = {
             0x3f, 0xfc, 0x00,
             0xff, 0xff, 0x00,
             0xf0, 0x0f, 0x00,
@@ -30,7 +30,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xc0};
 
-    static short cgaletC[] = {
+    static final short[] CGA_LETTER_C = {
             0x3f, 0xff, 0xc0,
             0xff, 0xff, 0xf0,
             0xf0, 0x00, 0xf0,
@@ -44,7 +44,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xc0};
 
-    static short cgaletD[] = {
+    static final short[] CGA_LETTER_D = {
             0xff, 0xff, 0xc0,
             0xff, 0xff, 0xf0,
             0xf0, 0x00, 0xf0,
@@ -58,7 +58,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0xff, 0xff, 0xc0};
 
-    static short cgaletE[] = {
+    static final short[] CGA_LETTER_E = {
             0x3f, 0xff, 0xf0,
             0xff, 0xff, 0xf0,
             0xf0, 0x00, 0x00,
@@ -72,7 +72,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xf0};
 
-    static short cgaletF[] = {
+    static final short[] CGA_LETTER_F = {
             0x3f, 0xff, 0xf0,
             0xff, 0xff, 0xf0,
             0xfc, 0x00, 0x00,
@@ -86,7 +86,7 @@ abstract class Alphabet {
             0xff, 0x00, 0x00,
             0xff, 0x00, 0x00};
 
-    static short cgaletG[] = {
+    static final short[] CGA_LETTER_G = {
             0x3f, 0xff, 0xc0,
             0xff, 0xff, 0xf0,
             0xf0, 0x00, 0xf0,
@@ -100,7 +100,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xc0};
 
-    static short cgaletH[] = {
+    static final short[] CGA_LETTER_H = {
             0xf0, 0x00, 0xf0,
             0xf0, 0x00, 0xf0,
             0xf0, 0x00, 0xf0,
@@ -114,7 +114,7 @@ abstract class Alphabet {
             0xff, 0x00, 0xf0,
             0xff, 0x00, 0xf0};
 
-    static short cgaletI[] = {
+    static final short[] CGA_LETTER_I = {
             0x00, 0xf0, 0x00,
             0x00, 0xf0, 0x00,
             0x00, 0xf0, 0x00,
@@ -128,7 +128,7 @@ abstract class Alphabet {
             0x00, 0xff, 0x00,
             0x00, 0xff, 0x00};
 
-    static short cgaletJ[] = {
+    static final short[] CGA_LETTER_J = {
             0x00, 0x0f, 0x00,
             0x00, 0x0f, 0x00,
             0x00, 0x0f, 0x00,
@@ -142,7 +142,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xc0};
 
-    static short cgaletK[] = {
+    static final short[] CGA_LETTER_K = {
             0xf0, 0x0f, 0x00,
             0xf0, 0x0f, 0x00,
             0xf0, 0x0f, 0x00,
@@ -156,7 +156,7 @@ abstract class Alphabet {
             0xff, 0x00, 0xf0,
             0xff, 0x00, 0xf0};
 
-    static short cgaletL[] = {
+    static final short[] CGA_LETTER_L = {
             0xf0, 0x00, 0x00,
             0xf0, 0x00, 0x00,
             0xf0, 0x00, 0x00,
@@ -170,7 +170,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xf0};
 
-    static short cgaletM[] = {
+    static final short[] CGA_LETTER_M = {
             0x3f, 0xff, 0xc0,
             0xff, 0xff, 0xf0,
             0xf0, 0xf0, 0xf0,
@@ -184,7 +184,7 @@ abstract class Alphabet {
             0xfc, 0xf0, 0xf0,
             0xfc, 0xf0, 0xf0};
 
-    static short cgaletN[] = {
+    static final short[] CGA_LETTER_N = {
             0x0f, 0xff, 0xc0,
             0x3f, 0xff, 0xf0,
             0x3c, 0x00, 0xf0,
@@ -198,7 +198,7 @@ abstract class Alphabet {
             0x3f, 0x00, 0xf0,
             0x3f, 0x00, 0xf0};
 
-    static short cgaletO[] = {
+    static final short[] CGA_LETTER_O = {
             0x3f, 0xff, 0xc0,
             0xff, 0xff, 0xf0,
             0xf0, 0x0f, 0xf0,
@@ -212,7 +212,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xc0};
 
-    static short cgaletP[] = {
+    static final short[] CGA_LETTER_P = {
             0x3f, 0xff, 0xc0,
             0xff, 0xff, 0xf0,
             0xf0, 0x00, 0xf0,
@@ -226,7 +226,7 @@ abstract class Alphabet {
             0xff, 0x00, 0x00,
             0xff, 0x00, 0x00};
 
-    static short cgaletQ[] = {
+    static final short[] CGA_LETTER_Q = {
             0x3f, 0xff, 0xc0,
             0xff, 0xff, 0xf0,
             0xf0, 0x00, 0xf0,
@@ -240,7 +240,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xc0};
 
-    static short cgaletR[] = {
+    static final short[] CGA_LETTER_R = {
             0x3f, 0xfc, 0x00,
             0xff, 0xff, 0x00,
             0xf0, 0x0f, 0x00,
@@ -254,7 +254,7 @@ abstract class Alphabet {
             0xf0, 0x00, 0xf0,
             0xf0, 0x00, 0xf0};
 
-    static short cgaletS[] = {
+    static final short[] CGA_LETTER_S = {
             0x3f, 0xff, 0xc0,
             0xff, 0xff, 0xf0,
             0xf0, 0x00, 0xf0,
@@ -268,7 +268,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xc0};
 
-    static short cgaletT[] = {
+    static final short[] CGA_LETTER_T = {
             0xff, 0xff, 0xf0,
             0xff, 0xff, 0xf0,
             0x00, 0xf0, 0x00,
@@ -282,7 +282,7 @@ abstract class Alphabet {
             0x00, 0xff, 0x00,
             0x00, 0xff, 0x00};
 
-    static short cgaletU[] = {
+    static final short[] CGA_LETTER_U = {
             0xf0, 0x00, 0xf0,
             0xf0, 0x00, 0xf0,
             0xf0, 0x00, 0xf0,
@@ -296,7 +296,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xc0};
 
-    static short cgaletV[] = {
+    static final short[] CGA_LETTER_V = {
             0xf0, 0x00, 0xf0,
             0xf0, 0x00, 0xf0,
             0xf0, 0x00, 0xf0,
@@ -310,7 +310,7 @@ abstract class Alphabet {
             0x3f, 0xff, 0x00,
             0x0f, 0xfc, 0x00};
 
-    static short cgaletW[] = {
+    static final short[] CGA_LETTER_W = {
             0xf0, 0xf0, 0xf0,
             0xf0, 0xf0, 0xf0,
             0xf0, 0xf0, 0xf0,
@@ -324,7 +324,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xc0};
 
-    static short cgaletX[] = {
+    static final short[] CGA_LETTER_X = {
             0xf0, 0x00, 0xf0,
             0xf0, 0x00, 0xf0,
             0xf0, 0x00, 0xf0,
@@ -338,7 +338,7 @@ abstract class Alphabet {
             0xff, 0x00, 0xf0,
             0xff, 0x00, 0xf0};
 
-    static short cgaletY[] = {
+    static final short[] CGA_LETTER_Y = {
             0xf0, 0x00, 0xf0,
             0xf0, 0x00, 0xf0,
             0xf0, 0x00, 0xf0,
@@ -352,7 +352,7 @@ abstract class Alphabet {
             0x00, 0xfc, 0x00,
             0x00, 0xfc, 0x00};
 
-    static short cgaletZ[] = {
+    static final short[] CGA_LETTER_Z = {
             0x3f, 0xff, 0xc0,
             0xff, 0xff, 0xf0,
             0xf0, 0x00, 0xf0,
@@ -366,7 +366,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xc0};
 
-    static short cganum0[] = {
+    static final short[] CGA_DIGIT_0 = {
             0x3f, 0xff, 0xc0,
             0xff, 0xff, 0xf0,
             0xf0, 0x00, 0xf0,
@@ -380,7 +380,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xc0};
 
-    static short cganum1[] = {
+    static final short[] CGA_DIGIT_1 = {
             0x00, 0x3c, 0x00,
             0x00, 0x3c, 0x00,
             0x00, 0x3c, 0x00,
@@ -394,7 +394,7 @@ abstract class Alphabet {
             0x00, 0xfc, 0x00,
             0x00, 0xfc, 0x00};
 
-    static short cganum2[] = {
+    static final short[] CGA_DIGIT_2 = {
             0x3f, 0xff, 0xc0,
             0xff, 0xff, 0xf0,
             0xf0, 0x00, 0xf0,
@@ -408,7 +408,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xf0};
 
-    static short cganum3[] = {
+    static final short[] CGA_DIGIT_3 = {
             0x3f, 0xfc, 0x00,
             0xff, 0xff, 0x00,
             0xf0, 0x0f, 0x00,
@@ -422,7 +422,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xc0};
 
-    static short cganum4[] = {
+    static final short[] CGA_DIGIT_4 = {
             0xf0, 0x00, 0x00,
             0xf0, 0x00, 0x00,
             0xf0, 0x0f, 0x00,
@@ -436,7 +436,7 @@ abstract class Alphabet {
             0x00, 0x3f, 0x00,
             0x00, 0x3f, 0x00};
 
-    static short cganum5[] = {
+    static final short[] CGA_DIGIT_5 = {
             0x3f, 0xff, 0x00,
             0xff, 0xff, 0x00,
             0xf0, 0x00, 0x00,
@@ -450,7 +450,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xc0};
 
-    static short cganum6[] = {
+    static final short[] CGA_DIGIT_6 = {
             0x3f, 0xff, 0xc0,
             0xff, 0xff, 0xf0,
             0xf0, 0x00, 0xf0,
@@ -464,7 +464,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xc0};
 
-    static short cganum7[] = {
+    static final short[] CGA_DIGIT_7 = {
             0x3f, 0xff, 0xc0,
             0x3f, 0xff, 0xf0,
             0x00, 0x00, 0xf0,
@@ -478,7 +478,7 @@ abstract class Alphabet {
             0x00, 0x03, 0xf0,
             0x00, 0x03, 0xf0};
 
-    static short cganum8[] = {
+    static final short[] CGA_DIGIT_8 = {
             0x03, 0xff, 0x00,
             0x0f, 0xff, 0xc0,
             0x0f, 0x03, 0xc0,
@@ -492,7 +492,7 @@ abstract class Alphabet {
             0xff, 0xff, 0xf0,
             0x3f, 0xff, 0xc0};
 
-    static short cganum9[] = {
+    static final short[] CGA_DIGIT_9 = {
             0x3f, 0xff, 0xc0,
             0xff, 0xff, 0xf0,
             0xf0, 0x00, 0xf0,
@@ -506,7 +506,7 @@ abstract class Alphabet {
             0x00, 0x0f, 0xf0,
             0x00, 0x0f, 0xf0};
 
-    static short cgasymdot[] = {
+    static final short[] CGA_SYMBOL_DOT = {
             0x00, 0x00, 0x00,
             0x00, 0x00, 0x00,
             0x00, 0x00, 0x00,
@@ -520,7 +520,7 @@ abstract class Alphabet {
             0x03, 0xc0, 0x00,
             0x03, 0xc0, 0x00};
 
-    static short cgasymline[] = {
+    static final short[] CGA_SYMBOL_LINE = {
             0x00, 0x00, 0x00,
             0x00, 0x00, 0x00,
             0x00, 0x00, 0x00,
@@ -534,7 +534,7 @@ abstract class Alphabet {
             0x00, 0x00, 0x00,
             0x0f, 0xff, 0xf0};
 
-    static short cgasymspace[] = {
+    static final short[] CGA_SYMBOL_SPACE = {
             0x00, 0x00, 0x00,
             0x00, 0x00, 0x00,
             0x00, 0x00, 0x00,
@@ -549,16 +549,16 @@ abstract class Alphabet {
             0x00, 0x00, 0x00};
 
 
-    static short[] ascii2cga[] = {    // [0x5f]
-            cgasymspace, null, null, null, null, null, null, null, null, null, null, null, null, null, cgasymdot, null,     /*  !"#$%&'()*+,-./ */
-            cganum0, cganum1, cganum2, cganum3, cganum4, cganum5, cganum6,        /* 0123456 */
-            cganum7, cganum8, cganum9, null, null, null, null, null, null, null, cgaletA, cgaletB,     /* 789:;<=>?:AB */
-            cgaletC, cgaletD, cgaletE, cgaletF, cgaletG, cgaletH, cgaletI,        /* CDEFGHI */
-            cgaletJ, cgaletK, cgaletL, cgaletM, cgaletN, cgaletO, cgaletP,        /* JKLMNOP */
-            cgaletQ, cgaletR, cgaletS, cgaletT, cgaletU, cgaletV, cgaletW,        /* QRSTUVW */
-            cgaletX, cgaletY, cgaletZ, null, null, null, null, cgasymline, null, cgaletA,        /* XYZ[\]^_`a */
-            cgaletB, cgaletC, cgaletD, cgaletE, cgaletF, cgaletG, cgaletH,        /* bcdefgh */
-            cgaletI, cgaletJ, cgaletK, cgaletL, cgaletM, cgaletN, cgaletO,        /* ijklmno */
-            cgaletP, cgaletQ, cgaletR, cgaletS, cgaletT, cgaletU, cgaletV,        /* pqrstuv */
-            cgaletW, cgaletX, cgaletY, cgaletZ, null, null, null, null};                      /* wxyz{|}~ */
+    static final short[][] CGA_ASCII_TABLE = {    // [0x5f]
+            CGA_SYMBOL_SPACE, null, null, null, null, null, null, null, null, null, null, null, null, null, CGA_SYMBOL_DOT, null,     /*  !"#$%&'()*+,-./ */
+            CGA_DIGIT_0, CGA_DIGIT_1, CGA_DIGIT_2, CGA_DIGIT_3, CGA_DIGIT_4, CGA_DIGIT_5, CGA_DIGIT_6,        /* 0123456 */
+            CGA_DIGIT_7, CGA_DIGIT_8, CGA_DIGIT_9, null, null, null, null, null, null, null, CGA_LETTER_A, CGA_LETTER_B,     /* 789:;<=>?:AB */
+            CGA_LETTER_C, CGA_LETTER_D, CGA_LETTER_E, CGA_LETTER_F, CGA_LETTER_G, CGA_LETTER_H, CGA_LETTER_I,        /* CDEFGHI */
+            CGA_LETTER_J, CGA_LETTER_K, CGA_LETTER_L, CGA_LETTER_M, CGA_LETTER_N, CGA_LETTER_O, CGA_LETTER_P,        /* JKLMNOP */
+            CGA_LETTER_Q, CGA_LETTER_R, CGA_LETTER_S, CGA_LETTER_T, CGA_LETTER_U, CGA_LETTER_V, CGA_LETTER_W,        /* QRSTUVW */
+            CGA_LETTER_X, CGA_LETTER_Y, CGA_LETTER_Z, null, null, null, null, CGA_SYMBOL_LINE, null, CGA_LETTER_A,        /* XYZ[\]^_`a */
+            CGA_LETTER_B, CGA_LETTER_C, CGA_LETTER_D, CGA_LETTER_E, CGA_LETTER_F, CGA_LETTER_G, CGA_LETTER_H,        /* bcdefgh */
+            CGA_LETTER_I, CGA_LETTER_J, CGA_LETTER_K, CGA_LETTER_L, CGA_LETTER_M, CGA_LETTER_N, CGA_LETTER_O,        /* ijklmno */
+            CGA_LETTER_P, CGA_LETTER_Q, CGA_LETTER_R, CGA_LETTER_S, CGA_LETTER_T, CGA_LETTER_U, CGA_LETTER_V,        /* pqrstuv */
+            CGA_LETTER_W, CGA_LETTER_X, CGA_LETTER_Y, CGA_LETTER_Z, null, null, null, null};                      /* wxyz{|}~ */
 }
