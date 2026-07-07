@@ -121,10 +121,6 @@ class CgaDisplay {
      * @param h  height in rows
      */
     void drawSprite(int x, int y, short[] p, int w, int h) {
-        drawSprite(x, y, p, w, h, true);
-    }
-
-    void drawSprite(int x, int y, short[] p, int w, int h, boolean overwrite) {
         int src = 0;
         int dest = y * width + (x & 0xfffc);
         for (int i = 0; i < h; i++) {

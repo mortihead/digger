@@ -7,13 +7,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.IndexColorModel;
 import java.awt.image.MemoryImageSource;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
+import java.util.prefs.Preferences;
 
 /**
  * Main game class: manages the game loop, digger logic, fire, bonus mode,
@@ -21,17 +16,17 @@ import java.util.Objects;
  */
 public class Digger extends Frame implements Runnable {
 
-    private static final String INI_FILE = "digger.ini";
-
-    private final Map<String, String> parameters;
-
     public boolean running;
 
     static int MAX_RATE = 200, MIN_RATE = 40;
 
     int width = 320, height = 200, frametime = 66;
-    int scaleFactor = 2;
     Thread gamethread;
+
+    private static final Preferences windowPrefs = Preferences.userNodeForPackage(Digger.class);
+    private static final String PREF_WINDOW_WIDTH = "windowWidth";
+    private static final String PREF_WINDOW_HEIGHT = "windowHeight";
+    private static final String PREF_FRAMETIME = "frametime";
 
     Bags bags;
     Main main;
@@ -55,7 +50,7 @@ public class Digger extends Frame implements Runnable {
 
     byte[] emfield = new byte[150];
 
-    boolean digonscr = false, notfiring = false, bonusvisible = false, bonusmode = false, diggervisible = false;
+    boolean digOnScreen = false, notFiring = false, bonusVisible = false, bonusMode = false, diggerVisible = false;
 
     long time, ftime = 50;
 
@@ -64,11 +59,8 @@ public class Digger extends Frame implements Runnable {
     /** Arc heights for digger death animation (stage 5). */
     int[] deatharc = {3, 5, 6, 6, 5, 3, 0};
 
-    public Digger() throws IOException {
+    public Digger() {
         setTitle("Digger Game");
-        this.parameters = new HashMap<>();
-        loadParameters(INI_FILE);
-        scaleFactor = Math.max(1, Integer.parseInt(getParameter("scale_factor", "2")));
 
         canvas.setFocusable(false);
         setLayout(new BorderLayout());
@@ -99,6 +91,9 @@ public class Digger extends Frame implements Runnable {
                 input.escape = true;
                 if (sound != null)
                     sound.killSound();
+                windowPrefs.putInt(PREF_WINDOW_WIDTH, canvas.getWidth());
+                windowPrefs.putInt(PREF_WINDOW_HEIGHT, canvas.getHeight());
+                windowPrefs.putInt(PREF_FRAMETIME, frametime);
                 dispose();
                 System.exit(0);
             }
@@ -123,44 +118,9 @@ public class Digger extends Frame implements Runnable {
 
     public static void main(String[] args) {
         javax.swing.SwingUtilities.invokeLater(() -> {
-            Digger app = null;
-            try {
-                app = new Digger();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            Digger app = new Digger();
             app.setVisible(true);
         });
-    }
-
-    private void loadParameters(String filePath) throws IOException {
-        File file = new File(filePath);
-        if (!file.exists() || !file.isFile() || !file.canRead()) {
-            if (!file.exists())
-                System.err.println("Warning: Configuration file not found: " + filePath);
-            return;
-        }
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                if (line.isEmpty() || line.startsWith(";") || line.startsWith("#"))
-                    continue;
-                String[] parts = line.split("=", 2);
-                if (parts.length == 2) {
-                    parameters.put(parts[0].trim(), parts[1].trim());
-                }
-            }
-        }
-    }
-
-    public String getParameter(String name) {
-        return parameters.get(name);
-    }
-
-    private String getParameter(String param, String defaultValue) {
-        String res = getParameter(param);
-        return (Objects.isNull(res) ? defaultValue : res);
     }
 
     boolean isDiggerUnderBag(int h, int v) {
@@ -181,13 +141,8 @@ public class Digger extends Frame implements Runnable {
     }
 
     void createbonus() {
-        bonusvisible = true;
+        bonusVisible = true;
         drawing.drawBonus(292, 18);
-    }
-
-    public void destroy() {
-        if (gamethread != null)
-            gamethread.stop();
     }
 
     void diggerdie() {
@@ -222,7 +177,7 @@ public class Digger extends Frame implements Runnable {
                     deathtime = 2;
                 } else {
                     deathstage = 4;
-                    if (sound.musicflag)
+                    if (sound.musicFlag)
                         deathtime = 60;
                     else
                         deathtime = 10;
@@ -263,17 +218,17 @@ public class Digger extends Frame implements Runnable {
             drawexplosion();
         else
             updatefire();
-        if (diggervisible)
-            if (digonscr)
+        if (diggerVisible)
+            if (digOnScreen)
                 if (digtime != 0) {
-                    drawing.drawDigger(digmdir, diggerx, diggery, notfiring && rechargetime == 0);
+                    drawing.drawDigger(digmdir, diggerx, diggery, notFiring && rechargetime == 0);
                     main.incrementPenalty();
                     digtime--;
                 } else
                     updatedigger();
             else
                 diggerdie();
-        if (bonusmode && digonscr) {
+        if (bonusMode && digOnScreen) {
             if (bonustimeleft != 0) {
                 bonustimeleft--;
                 if (startbonustimeleft != 0 || bonustimeleft < 20) {
@@ -297,7 +252,7 @@ public class Digger extends Frame implements Runnable {
                 sound.music(1);
             }
         }
-        if (bonusmode && !digonscr) {
+        if (bonusMode && !digOnScreen) {
             endbonusmode();
             sound.soundBonusOff();
             sound.music(1);
@@ -331,25 +286,25 @@ public class Digger extends Frame implements Runnable {
     }
 
     void endbonusmode() {
-        bonusmode = false;
+        bonusMode = false;
         display.setIntensity(0);
     }
 
     void eraseBonus() {
-        if (bonusvisible) {
-            bonusvisible = false;
-            sprite.erasespr(14);
+        if (bonusVisible) {
+            bonusVisible = false;
+            sprite.eraseSprite(14);
         }
         display.setIntensity(0);
     }
 
     void eraseDigger() {
-        sprite.erasespr(0);
-        diggervisible = false;
+        sprite.eraseSprite(0);
+        diggerVisible = false;
     }
 
     boolean getfirepflag() {
-        return input.firepflag;
+        return input.firePressedFlag;
     }
 
     boolean hitemerald(int x, int y, int rx, int ry, int dir) {
@@ -384,14 +339,7 @@ public class Digger extends Frame implements Runnable {
         if (gamethread != null)
             gamethread.stop();
 
-        try {
-            frametime = Integer.parseInt(getParameter("speed", "66"));
-            if (frametime > MAX_RATE)
-                frametime = MAX_RATE;
-            else if (frametime < MIN_RATE)
-                frametime = MIN_RATE;
-        } catch (Exception e) {
-        }
+        frametime = Math.max(MIN_RATE, Math.min(MAX_RATE, windowPrefs.getInt(PREF_FRAMETIME, frametime)));
 
         display.pixels = new int[65536];
 
@@ -412,7 +360,7 @@ public class Digger extends Frame implements Runnable {
     }
 
     void initbonusmode() {
-        bonusmode = true;
+        bonusMode = true;
         eraseBonus();
         display.setIntensity(1);
         bonustimeleft = 250 - main.getLevelNumberClampedToTen() * 20;
@@ -429,15 +377,15 @@ public class Digger extends Frame implements Runnable {
         diggerrx = 0;
         diggerry = 0;
         digtime = 0;
-        digonscr = true;
+        digOnScreen = true;
         deathstage = 1;
-        diggervisible = true;
+        diggerVisible = true;
         diggery = diggerv * 18 + 18;
-        sprite.movedrawspr(0, diggerx, diggery);
-        notfiring = true;
+        sprite.moveDrawSprite(0, diggerx, diggery);
+        notFiring = true;
         emocttime = 0;
-        bonusvisible = bonusmode = false;
-        input.firepressed = false;
+        bonusVisible = bonusMode = false;
+        input.firePressed = false;
         expsn = 0;
         rechargetime = 0;
     }
@@ -460,22 +408,22 @@ public class Digger extends Frame implements Runnable {
                 input.keyF1Pressed();
                 break;
             case KeyEvent.VK_F7:
-                sound.musicflag = !sound.musicflag;
-                if (sound.musicflag && !sound.musicplaying && sound.soundflag)
+                sound.musicFlag = !sound.musicFlag;
+                if (sound.musicFlag && !sound.musicPlaying && sound.soundFlag)
                     sound.music(sound.tuneno);
                 break;
             case KeyEvent.VK_F9:
-                sound.soundflag = !sound.soundflag;
+                sound.soundFlag = !sound.soundFlag;
                 break;
             case KeyEvent.VK_F10:
                 input.escape = true;
                 break;
             case KeyEvent.VK_PLUS:
             case KeyEvent.VK_EQUALS:
-                input.pluspressed = true;
+                input.plusPressed = true;
                 break;
             case KeyEvent.VK_MINUS:
-                input.minuspressed = true;
+                input.minusPressed = true;
                 break;
             case KeyEvent.VK_T:
                 if ((e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0) {
@@ -483,7 +431,7 @@ public class Digger extends Frame implements Runnable {
                 }
                 break;
             default:
-                input.processkey(e.getKeyCode());
+                input.processKey(e.getKeyCode());
                 break;
         }
         return true;
@@ -508,10 +456,10 @@ public class Digger extends Frame implements Runnable {
                 break;
             case KeyEvent.VK_PLUS:
             case KeyEvent.VK_EQUALS:
-                input.pluspressed = false;
+                input.plusPressed = false;
                 break;
             case KeyEvent.VK_MINUS:
-                input.minuspressed = false;
+                input.minusPressed = false;
                 break;
             default:
                 break;
@@ -521,7 +469,7 @@ public class Digger extends Frame implements Runnable {
 
     void killdigger(int stage, int bag) {
         if (deathstage < 2 || deathstage > 4) {
-            digonscr = false;
+            digOnScreen = false;
             deathstage = stage;
             deathbag = bag;
         }
@@ -535,9 +483,9 @@ public class Digger extends Frame implements Runnable {
     }
 
     void killFire() {
-        if (!notfiring) {
-            notfiring = true;
-            sprite.erasespr(15);
+        if (!notFiring) {
+            notFiring = true;
+            sprite.eraseSprite(15);
             sound.soundFireOff();
         }
     }
@@ -553,7 +501,7 @@ public class Digger extends Frame implements Runnable {
     }
 
     void newFrame() {
-        input.checkkeyb();
+        input.checkKeyboard();
         time += frametime;
         long l = time - display.getCurrentTimeMillis();
         if (l > 0) {
@@ -583,7 +531,13 @@ public class Digger extends Frame implements Runnable {
         main.main();
     }
 
-    /** Renders the CGA framebuffer with no manual inset math; the canvas's own origin is the content area. */
+    /**
+     * Отрисовывает буфер CGA, масштабируя его под размер canvas с сохранением пропорций 320x200.
+     * <p>
+     * Свободное место по краям (letterbox) закрашивается чёрным. Интерполяция методом ближайшего
+     * соседа сохраняет чёткость пиксель-арта даже при нецелочисленном коэффициенте масштабирования,
+     * возникающем при произвольном изменении размера окна.
+     */
     private final class GameCanvas extends Canvas {
         @Override
         public void paint(Graphics g) {
@@ -592,14 +546,38 @@ public class Digger extends Frame implements Runnable {
 
         @Override
         public void update(Graphics g) {
-            if (!Objects.isNull(g) && !Objects.isNull(display) && !Objects.isNull(display.currentImage)) {
-                int originalWidth = display.currentImage.getWidth(this);
-                int originalHeight = display.currentImage.getHeight(this);
-                g.drawImage(display.currentImage, 0, 0, originalWidth * scaleFactor, originalHeight * scaleFactor, this);
-            }
+            if (Objects.isNull(g) || Objects.isNull(display) || Objects.isNull(display.currentImage))
+                return;
+
+            int canvasWidth = getWidth();
+            int canvasHeight = getHeight();
+            int originalWidth = display.currentImage.getWidth(this);
+            int originalHeight = display.currentImage.getHeight(this);
+            if (canvasWidth <= 0 || canvasHeight <= 0 || originalWidth <= 0 || originalHeight <= 0)
+                return;
+
+            double scale = Math.min((double) canvasWidth / originalWidth, (double) canvasHeight / originalHeight);
+            int drawWidth = (int) Math.round(originalWidth * scale);
+            int drawHeight = (int) Math.round(originalHeight * scale);
+            int offsetX = (canvasWidth - drawWidth) / 2;
+            int offsetY = (canvasHeight - drawHeight) / 2;
+
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, canvasWidth, canvasHeight);
+            if (g instanceof Graphics2D)
+                ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                        RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+            g.drawImage(display.currentImage, offsetX, offsetY, drawWidth, drawHeight, this);
         }
     }
 
+    /**
+     * Определяет размер окна при запуске: восстанавливает последний размер, до которого игрок
+     * растянул окно (сохранённый в {@link #windowPrefs}), либо подбирает наибольшее кратное
+     * разрешению 320x200, комфортно помещающееся на текущем экране.
+     * <p>
+     * Инсеты вручную не читаются — этим занимается {@link #pack()}.
+     */
     private void configureWindowBounds() {
         GraphicsConfiguration configuration = getGraphicsConfiguration();
         if (Objects.isNull(configuration)) {
@@ -610,23 +588,35 @@ public class Digger extends Frame implements Runnable {
 
         Rectangle usableBounds = getUsableScreenBounds(configuration);
 
-        int maxScale = Math.max(1, Math.min(usableBounds.width / width, usableBounds.height / height));
-        scaleFactor = Math.max(1, Math.min(scaleFactor, maxScale));
+        int savedWidth = windowPrefs.getInt(PREF_WINDOW_WIDTH, 0);
+        int savedHeight = windowPrefs.getInt(PREF_WINDOW_HEIGHT, 0);
+        Dimension targetSize = (savedWidth > 0 && savedHeight > 0)
+                ? new Dimension(Math.min(savedWidth, usableBounds.width), Math.min(savedHeight, usableBounds.height))
+                : computeDefaultCanvasSize(usableBounds);
 
-        canvas.setPreferredSize(new Dimension(width * scaleFactor, height * scaleFactor));
+        canvas.setPreferredSize(targetSize);
         pack();
 
-        // pack() sizes the window from the canvas's preferred size plus whatever insets the
-        // window manager reports at that moment; re-shrink and re-pack if that still overshoots
-        // the usable screen area instead of trusting a single inset reading.
-        while (scaleFactor > 1 && (getWidth() > usableBounds.width || getHeight() > usableBounds.height)) {
-            scaleFactor--;
-            canvas.setPreferredSize(new Dimension(width * scaleFactor, height * scaleFactor));
+        // pack() выставляет размер окна по preferred size canvas плюс инсеты, которые в этот момент
+        // сообщит оконный менеджер; если результат всё равно не помещается на экран (например,
+        // сохранённый размер был снят с большего монитора), уменьшаем и вызываем pack() повторно.
+        while ((getWidth() > usableBounds.width || getHeight() > usableBounds.height)
+                && targetSize.width > width && targetSize.height > height) {
+            targetSize = new Dimension((int) (targetSize.width * 0.9), (int) (targetSize.height * 0.9));
+            canvas.setPreferredSize(targetSize);
             pack();
         }
 
         setLocation(usableBounds.x + Math.max(0, (usableBounds.width - getWidth()) / 2),
                 usableBounds.y + Math.max(0, (usableBounds.height - getHeight()) / 2));
+    }
+
+    /** Наибольшее целое кратное базового разрешения 320x200, помещающееся в 90% рабочей области экрана. */
+    private Dimension computeDefaultCanvasSize(Rectangle usableBounds) {
+        int marginedWidth = (int) (usableBounds.width * 0.9);
+        int marginedHeight = (int) (usableBounds.height * 0.9);
+        int maxScale = Math.max(1, Math.min(marginedWidth / width, marginedHeight / height));
+        return new Dimension(width * maxScale, height * maxScale);
     }
 
     private Rectangle getUsableScreenBounds(GraphicsConfiguration configuration) {
@@ -694,7 +684,7 @@ public class Digger extends Frame implements Runnable {
             sound.soundEmerald(emocttime);
             emocttime = 9;
         }
-        clbits = drawing.drawDigger(digdir, diggerx, diggery, notfiring && rechargetime == 0);
+        clbits = drawing.drawDigger(digdir, diggerx, diggery, notFiring && rechargetime == 0);
         main.incrementPenalty();
         if ((bags.bagbits() & clbits) != 0) {
             if (digmdir == 0 || digmdir == 4) {
@@ -716,12 +706,12 @@ public class Digger extends Frame implements Runnable {
                     diggerx = ((diggerx - 12 + 19) / 20) * 20 + 12;
                 else if (digmdir == 0) // blocked going right → snap left to current cell
                     diggerx = ((diggerx - 12) / 20) * 20 + 12;
-                drawing.drawDigger(digmdir, diggerx, diggery, notfiring && rechargetime == 0);
+                drawing.drawDigger(digmdir, diggerx, diggery, notFiring && rechargetime == 0);
                 main.incrementPenalty();
                 digdir = reversedir(digmdir);
             }
         }
-        if (((clbits & 0x3f00) != 0) && bonusmode)
+        if (((clbits & 0x3f00) != 0) && bonusMode)
             for (nmon = monster.killmonsters(clbits); nmon != 0; nmon--) {
                 sound.soundEatm();
                 scores.scoreEatMonster();
@@ -738,13 +728,13 @@ public class Digger extends Frame implements Runnable {
 
     void updatefire() {
         int clbits, b, mon, pix = 0;
-        if (notfiring) {
+        if (notFiring) {
             if (rechargetime != 0)
                 rechargetime--;
             else if (getfirepflag())
-                if (digonscr) {
+                if (digOnScreen) {
                     rechargetime = main.getLevelNumberClampedToTen() * 3 + 60;
-                    notfiring = false;
+                    notFiring = false;
                     switch (digdir) {
                         case 0:
                             firex = diggerx + 8;
@@ -763,7 +753,7 @@ public class Digger extends Frame implements Runnable {
                             firey = diggery + 8;
                     }
                     firedir = digdir;
-                    sprite.movedrawspr(15, firex, firey);
+                    sprite.moveDrawSprite(15, firex, firey);
                     sound.soundFire();
                 }
         } else {

@@ -55,6 +55,10 @@ class SoundEngine {
             }
             line = (SourceDataLine) AudioSystem.getLine(info);
             line.open(format, BUFFER_SIZE * 4);
+            // Заполняем буфер линии тишиной перед start(): иначе драйвер включает ЦАП
+            // на ещё не заполненном буфере, из-за чего слышен щелчок.
+            byte[] silence = new byte[BUFFER_SIZE * 4];
+            line.write(silence, 0, silence.length);
             line.start();
         } catch (LineUnavailableException e) {
             return false;

@@ -26,63 +26,63 @@ class Sound {
 
     int timerClock = 0;
 
-    boolean soundflag = true, musicflag = true;
-    boolean sndflag = false, soundpausedflag = false;
+    boolean soundFlag = true, musicFlag = true;
+    boolean sndFlag = false, soundPausedFlag = false;
 
     // --- Level done jingle ---
-    boolean soundlevdoneflag = false;
+    boolean soundLevDoneFlag = false;
     int nljpointer = 0, nljnoteduration = 0;
     int[] newlevjingle = {0x8e8, 0x712, 0x5f2, 0x7f0, 0x6ac, 0x54c, 0x712, 0x5f2, 0x4b8, 0x474, 0x474};
 
     // --- Fall sound ---
-    boolean soundfallflag = false, soundfallf = false;
+    boolean soundFallFlag = false, soundFallF = false;
     int soundfallvalue, soundfalln = 0;
 
     // --- Break sound ---
-    boolean soundbreakflag = false;
+    boolean soundBreakFlag = false;
     int soundbreakduration = 0, soundbreakvalue = 0;
 
     // --- Wobble sound ---
-    boolean soundwobbleflag = false;
+    boolean soundWobbleFlag = false;
     int soundwobblen = 0;
 
     // --- Fire sound ---
-    boolean soundfireflag = false;
+    boolean soundFireFlag = false;
     int soundfirevalue, soundfiren = 0;
 
     // --- Explode sound ---
-    boolean soundexplodeflag = false;
+    boolean soundExplodeFlag = false;
     int soundexplodevalue, soundexplodeduration;
 
     // --- Bonus sound ---
-    boolean soundbonusflag = false;
+    boolean soundBonusFlag = false;
     int soundbonusn = 0;
 
     // --- Emerald monster sound ---
-    boolean soundemflag = false;
+    boolean soundEmFlag = false;
 
     // --- Emerald collect sound ---
-    boolean soundemeraldflag = false;
+    boolean soundEmeraldFlag = false;
     int soundemeraldduration, emerfreq, soundemeraldn;
 
     // --- Gold collect sound ---
-    boolean soundgoldflag = false, soundgoldf = false;
+    boolean soundGoldFlag = false, soundGoldF = false;
     int soundgoldvalue1, soundgoldvalue2, soundgoldduration;
 
     // --- Eat monster sound ---
-    boolean soundeatmflag = false;
+    boolean soundEatmFlag = false;
     int soundeatmvalue, soundeatmduration, soundeatmn;
 
     // --- Digger death sound ---
-    boolean soundddieflag = false;
+    boolean soundDdieFlag = false;
     int soundddien, soundddievalue;
 
     // --- 1-Up sound ---
-    boolean sound1upflag = false;
+    boolean sound1UpFlag = false;
     int sound1upduration = 0;
 
     // --- Music state ---
-    boolean musicplaying = false;
+    boolean musicPlaying = false;
     int musicp = 0, tuneno = 0, noteduration = 0, notevalue = 0;
     int musicmaxvol = 0, musicattackrate = 0, musicsustainlevel = 0;
     int musicdecayrate = 0, musicnotewidth = 0, musicreleaserate = 0;
@@ -142,8 +142,8 @@ class Sound {
         0x7d00, 16, 0x7d00, 16, 0x7d00, 16, 0x7d64
     };
 
-    boolean soundt0flag = false;
-    boolean int8flag = false;
+    boolean soundT0Flag = false;
+    boolean int8Flag = false;
 
     Sound(Digger d) {
         dig = d;
@@ -167,11 +167,11 @@ class Sound {
         t0val = 12000;
         musvol = 8;
         t2val = 40;
-        soundt0flag = true;
-        sndflag = true;
+        soundT0Flag = true;
+        sndFlag = true;
         spkrmode = 0;
-        int8flag = false;
-        musicplaying = false;
+        int8Flag = false;
+        musicPlaying = false;
         setSoundT2();
         soundStop();
         startInt8();
@@ -222,18 +222,18 @@ class Sound {
                 musicreleaserate = 1;
                 break;
         }
-        musicplaying = true;
+        musicPlaying = true;
         if (tune == 2)
             soundDdieOff();
     }
 
     void musicOff() {
-        musicplaying = false;
+        musicPlaying = false;
         musicp = 0;
     }
 
     void musicUpdate() {
-        if (!musicplaying)
+        if (!musicPlaying)
             return;
         if (noteduration != 0) {
             noteduration--;
@@ -302,20 +302,20 @@ class Sound {
 
     void setSoundMode() {
         spkrmode = wavetype;
-        if (!soundt0flag && sndflag) {
-            soundt0flag = true;
+        if (!soundT0Flag && sndFlag) {
+            soundT0Flag = true;
         }
     }
 
     void setSoundT2() {
-        if (soundt0flag) {
+        if (soundT0Flag) {
             spkrmode = 0;
-            soundt0flag = false;
+            soundT0Flag = false;
         }
     }
 
     void setT0() {
-        if (sndflag) {
+        if (sndFlag) {
             if (t0val < 1000 && (wavetype == 1 || wavetype == 2))
                 t0val = 1000;
             if (musvol < 1) musvol = 1;
@@ -333,7 +333,7 @@ class Sound {
         // Re-initialize sound engine after killSound()
         // (called from Scores after game over / high score entry)
         if (engine == null) {
-            sndflag = true;
+            sndFlag = true;
             startInt8();
             engine = new SoundEngine(this);
             boolean ok = engine.start();
@@ -348,36 +348,36 @@ class Sound {
 
     void sound1Up() {
         sound1upduration = 96;
-        sound1upflag = true;
+        sound1UpFlag = true;
     }
 
     void sound1UpOff() {
-        sound1upflag = false;
+        sound1UpFlag = false;
     }
 
     void sound1UpUpdate() {
-        if (sound1upflag) {
+        if (sound1UpFlag) {
             if ((sound1upduration / 3) % 2 != 0)
                 t2val = (sound1upduration << 2) + 600;
             sound1upduration--;
             if (sound1upduration < 1)
-                sound1upflag = false;
+                sound1UpFlag = false;
         }
     }
 
     // --- Sound effects: Bonus ---
 
     void soundBonus() {
-        soundbonusflag = true;
+        soundBonusFlag = true;
     }
 
     void soundBonusOff() {
-        soundbonusflag = false;
+        soundBonusFlag = false;
         soundbonusn = 0;
     }
 
     void soundBonusUpdate() {
-        if (soundbonusflag) {
+        if (soundBonusFlag) {
             soundbonusn++;
             if (soundbonusn > 15)
                 soundbonusn = 0;
@@ -394,20 +394,20 @@ class Sound {
         soundbreakduration = 3;
         if (soundbreakvalue < 15000)
             soundbreakvalue = 15000;
-        soundbreakflag = true;
+        soundBreakFlag = true;
     }
 
     void soundBreakOff() {
-        soundbreakflag = false;
+        soundBreakFlag = false;
     }
 
     void soundBreakUpdate() {
-        if (soundbreakflag)
+        if (soundBreakFlag)
             if (soundbreakduration != 0) {
                 soundbreakduration--;
                 t2val = soundbreakvalue;
             } else
-                soundbreakflag = false;
+                soundBreakFlag = false;
     }
 
     // --- Sound effects: Digger death ---
@@ -415,15 +415,15 @@ class Sound {
     void soundDdie() {
         soundddien = 0;
         soundddievalue = 20000;
-        soundddieflag = true;
+        soundDdieFlag = true;
     }
 
     void soundDdieOff() {
-        soundddieflag = false;
+        soundDdieFlag = false;
     }
 
     void soundDdieUpdate() {
-        if (soundddieflag) {
+        if (soundDdieFlag) {
             soundddien++;
             if (soundddien == 1)
                 musicOff();
@@ -443,15 +443,15 @@ class Sound {
         soundeatmduration = 20;
         soundeatmn = 3;
         soundeatmvalue = 2000;
-        soundeatmflag = true;
+        soundEatmFlag = true;
     }
 
     void soundEatmOff() {
-        soundeatmflag = false;
+        soundEatmFlag = false;
     }
 
     void soundEatmUpdate() {
-        if (soundeatmflag)
+        if (soundEatmFlag)
             if (soundeatmn != 0) {
                 if (soundeatmduration != 0) {
                     if ((soundeatmduration % 4) == 1)
@@ -466,13 +466,13 @@ class Sound {
                     soundeatmvalue = 2000;
                 }
             } else
-                soundeatmflag = false;
+                soundEatmFlag = false;
     }
 
     // --- Sound effects: Emerald monster ---
 
     void soundEm() {
-        soundemflag = true;
+        soundEmFlag = true;
     }
 
     void soundEmerald(int emocttime) {
@@ -509,15 +509,15 @@ class Sound {
         }
         soundemeraldduration = 7;
         soundemeraldn = 0;
-        soundemeraldflag = true;
+        soundEmeraldFlag = true;
     }
 
     void soundEmeraldOff() {
-        soundemeraldflag = false;
+        soundEmeraldFlag = false;
     }
 
     void soundEmeraldUpdate() {
-        if (soundemeraldflag)
+        if (soundEmeraldFlag)
             if (soundemeraldduration != 0) {
                 if (soundemeraldn == 0 || soundemeraldn == 1)
                     t2val = emerfreq;
@@ -531,11 +531,11 @@ class Sound {
     }
 
     void soundEmOff() {
-        soundemflag = false;
+        soundEmFlag = false;
     }
 
     void soundEmUpdate() {
-        if (soundemflag) {
+        if (soundEmFlag) {
             t2val = 1000;
             soundEmOff();
         }
@@ -546,48 +546,48 @@ class Sound {
     void soundExplode() {
         soundexplodevalue = 1500;
         soundexplodeduration = 10;
-        soundexplodeflag = true;
+        soundExplodeFlag = true;
         soundFireOff();
     }
 
     void soundExplodeOff() {
-        soundexplodeflag = false;
+        soundExplodeFlag = false;
     }
 
     void soundExplodeUpdate() {
-        if (soundexplodeflag)
+        if (soundExplodeFlag)
             if (soundexplodeduration != 0) {
                 soundexplodevalue = t2val = soundexplodevalue - (soundexplodevalue >> 3);
                 soundexplodeduration--;
             } else
-                soundexplodeflag = false;
+                soundExplodeFlag = false;
     }
 
     // --- Sound effects: Fall ---
 
     void soundFall() {
         soundfallvalue = 1000;
-        soundfallflag = true;
+        soundFallFlag = true;
     }
 
     void soundFallOff() {
-        soundfallflag = false;
+        soundFallFlag = false;
         soundfalln = 0;
     }
 
     void soundFallUpdate() {
-        if (soundfallflag)
+        if (soundFallFlag)
             if (soundfalln < 1) {
                 soundfalln++;
-                if (soundfallf)
+                if (soundFallF)
                     t2val = soundfallvalue;
             } else {
                 soundfalln = 0;
-                if (soundfallf) {
+                if (soundFallF) {
                     soundfallvalue += 50;
-                    soundfallf = false;
+                    soundFallF = false;
                 } else
-                    soundfallf = true;
+                    soundFallF = true;
             }
     }
 
@@ -595,16 +595,16 @@ class Sound {
 
     void soundFire() {
         soundfirevalue = 500;
-        soundfireflag = true;
+        soundFireFlag = true;
     }
 
     void soundFireOff() {
-        soundfireflag = false;
+        soundFireFlag = false;
         soundfiren = 0;
     }
 
     void soundFireUpdate() {
-        if (soundfireflag) {
+        if (soundFireFlag) {
             if (soundfiren == 1) {
                 soundfiren = 0;
                 soundfirevalue += soundfirevalue / 55;
@@ -622,25 +622,25 @@ class Sound {
         soundgoldvalue1 = 500;
         soundgoldvalue2 = 4000;
         soundgoldduration = 30;
-        soundgoldf = false;
-        soundgoldflag = true;
+        soundGoldF = false;
+        soundGoldFlag = true;
     }
 
     void soundGoldOff() {
-        soundgoldflag = false;
+        soundGoldFlag = false;
     }
 
     void soundGoldUpdate() {
-        if (soundgoldflag) {
+        if (soundGoldFlag) {
             if (soundgoldduration != 0)
                 soundgoldduration--;
             else
-                soundgoldflag = false;
-            if (soundgoldf) {
-                soundgoldf = false;
+                soundGoldFlag = false;
+            if (soundGoldF) {
+                soundGoldF = false;
                 t2val = soundgoldvalue1;
             } else {
-                soundgoldf = true;
+                soundGoldF = true;
                 t2val = soundgoldvalue2;
             }
             soundgoldvalue1 += (soundgoldvalue1 >> 4);
@@ -651,15 +651,15 @@ class Sound {
     // --- Main sound interrupt handler (replaces hardware Int 8) ---
 
     void soundInt() {
-        if (soundlevdoneflag) {
+        if (soundLevDoneFlag) {
             // soundLevDone() drives timerclock and audio itself
             return;
         }
         timerClock++;
-        if (soundflag && !sndflag)
-            sndflag = true;
-        if (!soundflag && sndflag) {
-            sndflag = false;
+        if (soundFlag && !sndFlag)
+            sndFlag = true;
+        if (!soundFlag && sndFlag) {
+            sndFlag = false;
             setSoundT2();
             // Silence the engine immediately when all sound is toggled off
             if (engine != null) {
@@ -668,13 +668,13 @@ class Sound {
                 engine.updateSpkrMode(0);
             }
         }
-        if (!musicflag && musicplaying) {
+        if (!musicFlag && musicPlaying) {
             musicOff();
         }
-        if (sndflag && !soundpausedflag) {
+        if (sndFlag && !soundPausedFlag) {
             t0val = SILENCE_T0VAL;
             t2val = DEFAULT_T2VAL;
-            if (musicflag)
+            if (musicFlag)
                 musicUpdate();
             soundEmeraldUpdate();
             soundWobbleUpdate();
@@ -705,12 +705,11 @@ class Sound {
         soundStop();
         nljpointer = 0;
         nljnoteduration = 20;
-        soundlevdoneflag = true;
-        while (soundlevdoneflag) {
+        soundLevDoneFlag = true;
+        while (soundLevDoneFlag) {
             // timerclock is incremented by soundInt() in the engine thread;
             // drive it ourselves since soundInt() skips updates while
-            // soundlevdoneflag is true
-            int prev = timerClock;
+            // soundLevDoneFlag is true
             timerClock++;
             soundLevDoneUpdate();
             // Small sleep to match original timing (~14ms per tick at 73Hz)
@@ -724,11 +723,11 @@ class Sound {
     }
 
     void soundLevDoneOff() {
-        soundlevdoneflag = false;
+        soundLevDoneFlag = false;
     }
 
     void soundLevDoneUpdate() {
-        if (sndflag) {
+        if (sndFlag) {
             if (nljpointer < 11)
                 t2val = newlevjingle[nljpointer];
             t0val = t2val + 35;
@@ -746,14 +745,14 @@ class Sound {
                     soundLevDoneOff();
             }
         } else {
-            soundlevdoneflag = false;
+            soundLevDoneFlag = false;
         }
     }
 
     // --- Pause ---
 
     void soundPause() {
-        soundpausedflag = true;
+        soundPausedFlag = true;
         // Silence the engine immediately so the current tone doesn't hang
         if (engine != null) {
             engine.updateT0Val(SILENCE_T0VAL);
@@ -763,7 +762,7 @@ class Sound {
     }
 
     void soundPauseOff() {
-        soundpausedflag = false;
+        soundPausedFlag = false;
     }
 
     // --- Stop all sounds ---
@@ -787,16 +786,16 @@ class Sound {
     // --- Sound effects: Wobble ---
 
     void soundWobble() {
-        soundwobbleflag = true;
+        soundWobbleFlag = true;
     }
 
     void soundWobbleOff() {
-        soundwobbleflag = false;
+        soundWobbleFlag = false;
         soundwobblen = 0;
     }
 
     void soundWobbleUpdate() {
-        if (soundwobbleflag) {
+        if (soundWobbleFlag) {
             soundwobblen++;
             if (soundwobblen > 63)
                 soundwobblen = 0;
@@ -818,14 +817,14 @@ class Sound {
     // --- Int 8 emulation (timer interrupt) ---
 
     void startInt8() {
-        if (!int8flag) {
-            int8flag = true;
+        if (!int8Flag) {
+            int8Flag = true;
         }
     }
 
     void stopInt8() {
-        if (int8flag) {
-            int8flag = false;
+        if (int8Flag) {
+            int8Flag = false;
         }
         setT2Val(DEFAULT_T2VAL);
     }

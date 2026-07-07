@@ -3,7 +3,7 @@ package org.digger.app;
 import java.util.Arrays;
 import java.util.prefs.Preferences;
 
-class Scores implements Runnable {
+class Scores {
     private static final int MAX_SCORES = 11;
     private static final int PLAYER_ONE = 0;
     private static final int PLAYER_TWO = 1;
@@ -15,11 +15,10 @@ class Scores implements Runnable {
     char highbuf[] = new char[10];
     long scoreHigh[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};    // [12]
     String scoreinit[] = new String[MAX_SCORES];
-    long finalScore = 0, score1 = 0, score2 = 0, nextbs1 = 0, nextbs2 = 0;
+    long finalScore = 0, player1Score = 0, player2Score = 0, player1NextLifeScore = 0, player2NextLifeScore = 0;
     String hsbuf;
-    char scorebuf[] = new char[512];
     int bonusScore = 20000;
-    boolean gotinitflag = false;
+    boolean gotInitFlag = false;
 
     Scores(Digger d) {
         dig = d;
@@ -29,31 +28,31 @@ class Scores implements Runnable {
 
     void addScore(int score) {
         if (dig.main.getCurrentPlayer() == PLAYER_ONE) {
-            score1 += score;
-            if (score1 > 999999l)
-                score1 = 0;
-            writenum(score1, 0, 0, 6, 1);
-            if (score1 >= nextbs1) {
+            player1Score += score;
+            if (player1Score > 999999l)
+                player1Score = 0;
+            writenum(player1Score, 0, 0, 6, 1);
+            if (player1Score >= player1NextLifeScore) {
                 if (dig.main.getLives(1) < 5) {
                     dig.main.addLife(1);
                     dig.drawing.drawLives();
                 }
-                nextbs1 += bonusScore;
+                player1NextLifeScore += bonusScore;
             }
         } else {
-            score2 += score;
-            if (score2 > 999999l)
-                score2 = 0;
-            if (score2 < 100000l)
-                writenum(score2, 236, 0, 6, 1);
+            player2Score += score;
+            if (player2Score > 999999l)
+                player2Score = 0;
+            if (player2Score < 100000l)
+                writenum(player2Score, 236, 0, 6, 1);
             else
-                writenum(score2, 248, 0, 6, 1);
-            if (score2 > nextbs2) {   /* Player 2 doesn't get the life until >20,000 ! */
+                writenum(player2Score, 248, 0, 6, 1);
+            if (player2Score > player2NextLifeScore) {   /* Player 2 doesn't get the life until >20,000 ! */
                 if (dig.main.getLives(2) < 5) {
                     dig.main.addLife(2);
                     dig.drawing.drawLives();
                 }
-                nextbs2 += bonusScore;
+                player2NextLifeScore += bonusScore;
             }
         }
         dig.main.incrementPenalty();
@@ -62,21 +61,21 @@ class Scores implements Runnable {
     }
 
     void drawScores() {
-        writenum(score1, 0, 0, 6, 3);
+        writenum(player1Score, 0, 0, 6, 3);
         if (dig.main.numPlayers == 2)
-            if (score2 < 100000L)
-                writenum(score2, 236, 0, 6, 3);
+            if (player2Score < 100000L)
+                writenum(player2Score, 236, 0, 6, 3);
             else
-                writenum(score2, 248, 0, 6, 3);
+                writenum(player2Score, 248, 0, 6, 3);
     }
 
     void endOfGame() {
         int i, j;
         addScore(0);
         if (dig.main.getCurrentPlayer() == PLAYER_ONE)
-            finalScore = score1;
+            finalScore = player1Score;
         else
-            finalScore = score2;
+            finalScore = player2Score;
         // scorehigh[11] holds the lowest score in the top-10 table (10th place).
         // If current score is higher, the player qualifies for the high score list.
         if (finalScore > scoreHigh[11]) {
@@ -91,7 +90,7 @@ class Scores implements Runnable {
             getInitials();
             shuffleHigh();
             // scoreinit[0]
-            // finalScore, score1
+            // finalScore, player1Score
             //
             saveScores();
         } else {
@@ -115,7 +114,8 @@ class Scores implements Runnable {
     void flashyWait(int n) {
         try {
             Thread.sleep(n * 2);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -123,7 +123,7 @@ class Scores implements Runnable {
      * Checks if the key code is a regular printable character.
      * Function keys (F1-F10) have the 0x80 bit set and are excluded.
      *
-     * @param kp key code from Input.keypressed
+     * @param kp key code from Input.lastKeyCode
      * @return true if it's a regular character (A-Z, digits, etc.), false for function keys
      */
     private boolean isRegularKey(int kp) {
@@ -132,23 +132,23 @@ class Scores implements Runnable {
 
     int getInitial(int x, int y) {
         int i, j;
-        dig.input.keypressed = 0;
+        dig.input.lastKeyCode = 0;
         dig.display.drawChar(x, y, '_', 3, true);
         for (j = 0; j < 5; j++) {
             for (i = 0; i < 40; i++) {
-                if (isRegularKey(dig.input.keypressed))
-                    return dig.input.keypressed;
+                if (isRegularKey(dig.input.lastKeyCode))
+                    return dig.input.lastKeyCode;
                 flashyWait(15);
             }
             for (i = 0; i < 40; i++) {
-                if (isRegularKey(dig.input.keypressed)) {
+                if (isRegularKey(dig.input.lastKeyCode)) {
                     dig.display.drawChar(x, y, '_', 3, true);
-                    return dig.input.keypressed;
+                    return dig.input.lastKeyCode;
                 }
                 flashyWait(15);
             }
         }
-        gotinitflag = true;
+        gotInitFlag = true;
         return 0;
     }
 
@@ -159,14 +159,14 @@ class Scores implements Runnable {
         dig.drawing.drawText("_ _ _", 128, 130, 3, true);
         scoreinit[0] = "...";
         dig.sound.killSound();
-        gotinitflag = false;
+        gotInitFlag = false;
         for (i = 0; i < 3; i++) {
             k = 0;
-            while (k == 0 && !gotinitflag) {
+            while (k == 0 && !gotInitFlag) {
                 k = getInitial(i * 24 + 128, 130);
                 if (i != 0 && k == 8)
                     i--;
-                k = dig.input.getAsciiKey(dig.input.keypressed);
+                k = dig.input.getAsciiKey(dig.input.lastKeyCode);
             }
             if (k != 0) {
                 dig.display.drawChar(i * 24 + 128, 130, k, 3, true);
@@ -175,7 +175,7 @@ class Scores implements Runnable {
                 scoreinit[0] = sb.toString();
             }
         }
-        dig.input.keypressed = 0;
+        dig.input.lastKeyCode = 0;
         for (i = 0; i < 20; i++)
             flashyWait(15);
         dig.sound.setupSound();
@@ -224,7 +224,8 @@ class Scores implements Runnable {
         System.out.println("║    Escape   - Switch between 1       ║");
         System.out.println("║               and 2 players (title)  ║");
         System.out.println("║    F1       - Fire (shoot)           ║");
-        System.out.println("║    F10	  - Return to title screen ║");
+        System.out.println("║    F10      - Return to title screen ║");
+        System.out.println("║    +/-      - Adjust game speed      ║");
         System.out.println("║                                      ║");
         System.out.println("║  Sound:                              ║");
         System.out.println("║    F7          - Toggle music        ║");
@@ -326,11 +327,11 @@ class Scores implements Runnable {
 
     void writeCurrentScore(int bp6) {
         if (dig.main.getCurrentPlayer() == PLAYER_ONE)
-            writenum(score1, 0, 0, 6, bp6);
-        else if (score2 < 100000l)
-            writenum(score2, 236, 0, 6, bp6);
+            writenum(player1Score, 0, 0, 6, bp6);
+        else if (player2Score < 100000l)
+            writenum(player2Score, 236, 0, 6, bp6);
         else
-            writenum(score2, 248, 0, 6, bp6);
+            writenum(player2Score, 248, 0, 6, bp6);
     }
 
     void writenum(long n, int x, int y, int w, int c) {
@@ -346,14 +347,10 @@ class Scores implements Runnable {
     }
 
     void zeroScores() {
-        score2 = 0;
-        score1 = 0;
+        player2Score = 0;
+        player1Score = 0;
         finalScore = 0;
-        nextbs1 = bonusScore;
-        nextbs2 = bonusScore;
-    }
-
-    @Override
-    public void run() {
+        player1NextLifeScore = bonusScore;
+        player2NextLifeScore = bonusScore;
     }
 }

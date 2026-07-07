@@ -4,38 +4,38 @@ class Input {
 
     Digger dig;
 
-    boolean leftpressed = false, rightpressed = false, uppressed = false, downpressed = false;
-    boolean f1pressed = false, firepressed = false;
-    boolean pluspressed = false, minuspressed = false;
+    boolean leftPressed = false, rightPressed = false, upPressed = false, downPressed = false;
+    boolean f1Pressed = false, firePressed = false;
+    boolean plusPressed = false, minusPressed = false;
     boolean escape = false;
 
-    int keypressed = 0;
-    int akeypressed;
-    int dynamicdir = -1, staticdir = -1;
-    int keydir = 0;
-    boolean firepflag = false;
-    boolean joyflag = false;
+    int lastKeyCode = 0;
+    int lastAsciiKeyCode;
+    int dynamicDir = -1, staticDir = -1;
+    int keyDir = 0;
+    boolean firePressedFlag = false;
+    boolean joyFlag = false;
 
     Input(Digger d) {
         dig = d;
     }
 
-    void checkkeyb() {
-        if (pluspressed) {
+    void checkKeyboard() {
+        if (plusPressed) {
             if (dig.frametime > Digger.MIN_RATE)
                 dig.frametime -= 5;
-            pluspressed = false;
+            plusPressed = false;
         }
-        if (minuspressed) {
+        if (minusPressed) {
             if (dig.frametime < Digger.MAX_RATE)
                 dig.frametime += 5;
-            minuspressed = false;
+            minusPressed = false;
         }
     }
 
     void detectJoystick() {
-        joyflag = false;
-        staticdir = dynamicdir = -1;
+        joyFlag = false;
+        staticDir = dynamicDir = -1;
     }
 
     int getAsciiKey(int make) {
@@ -47,68 +47,68 @@ class Input {
     }
 
     int getDirection() {
-        return keydir;
+        return keyDir;
     }
 
     void initKeyboard() {
     }
 
     void keyDownPressed() {
-        downpressed = true;
-        dynamicdir = staticdir = 6;
+        downPressed = true;
+        dynamicDir = staticDir = 6;
     }
 
     void keyDownReleased() {
-        downpressed = false;
-        if (dynamicdir == 6)
+        downPressed = false;
+        if (dynamicDir == 6)
             setDirection();
     }
 
     void keyF1Pressed() {
-        firepressed = true;
-        f1pressed = true;
+        firePressed = true;
+        f1Pressed = true;
     }
 
     void keyF1Released() {
-        f1pressed = false;
+        f1Pressed = false;
     }
 
     void keyLeftPressed() {
-        leftpressed = true;
-        dynamicdir = staticdir = 4;
+        leftPressed = true;
+        dynamicDir = staticDir = 4;
     }
 
     void keyLeftReleased() {
-        leftpressed = false;
-        if (dynamicdir == 4)
+        leftPressed = false;
+        if (dynamicDir == 4)
             setDirection();
     }
 
     void keyRightPressed() {
-        rightpressed = true;
-        dynamicdir = staticdir = 0;
+        rightPressed = true;
+        dynamicDir = staticDir = 0;
     }
 
     void keyRightReleased() {
-        rightpressed = false;
-        if (dynamicdir == 0)
+        rightPressed = false;
+        if (dynamicDir == 0)
             setDirection();
     }
 
     void keyUpPressed() {
-        uppressed = true;
-        dynamicdir = staticdir = 2;
+        upPressed = true;
+        dynamicDir = staticDir = 2;
     }
 
     void keyUpReleased() {
-        uppressed = false;
-        if (dynamicdir == 2)
+        upPressed = false;
+        if (dynamicDir == 2)
             setDirection();
     }
 
-    void processkey(int key) {
-        keypressed = key;
-        akeypressed = key;
+    void processKey(int key) {
+        lastKeyCode = key;
+        lastAsciiKeyCode = key;
     }
 
     /**
@@ -117,32 +117,32 @@ class Input {
      * even if the digger can't turn yet (grid alignment).
      */
     void readDirection() {
-        if (dynamicdir != -1)
-            keydir = dynamicdir;
+        if (dynamicDir != -1)
+            keyDir = dynamicDir;
         else {
             // No new key pressed — keep last held direction
-            if (uppressed) keydir = 2;
-            else if (downpressed) keydir = 6;
-            else if (leftpressed) keydir = 4;
-            else if (rightpressed) keydir = 0;
-            else keydir = -1;
+            if (upPressed) keyDir = 2;
+            else if (downPressed) keyDir = 6;
+            else if (leftPressed) keyDir = 4;
+            else if (rightPressed) keyDir = 0;
+            else keyDir = -1;
         }
-        firepflag = f1pressed || firepressed;
-        firepressed = false;
+        firePressedFlag = f1Pressed || firePressed;
+        firePressed = false;
     }
 
     void setDirection() {
-        dynamicdir = -1;
-        if (uppressed) dynamicdir = staticdir = 2;
-        if (downpressed) dynamicdir = staticdir = 6;
-        if (leftpressed) dynamicdir = staticdir = 4;
-        if (rightpressed) dynamicdir = staticdir = 0;
+        dynamicDir = -1;
+        if (upPressed) dynamicDir = staticDir = 2;
+        if (downPressed) dynamicDir = staticDir = 6;
+        if (leftPressed) dynamicDir = staticDir = 4;
+        if (rightPressed) dynamicDir = staticDir = 0;
     }
 
     boolean testStart() {
-        if (keypressed != 0 && (keypressed & 0x80) == 0 && keypressed != 27) {
-            joyflag = false;
-            keypressed = 0;
+        if (lastKeyCode != 0 && (lastKeyCode & 0x80) == 0 && lastKeyCode != 27) {
+            joyFlag = false;
+            lastKeyCode = 0;
             return true;
         }
         return false;

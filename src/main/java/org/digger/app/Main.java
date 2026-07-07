@@ -25,7 +25,6 @@ class Main {
     boolean flashPlayer = false;
 
     int speedMul = 40;
-    int scaleFactor = 2;
 
     int randSeed;
 
@@ -131,7 +130,7 @@ class Main {
      * Checks if the current level is completed (all emeralds collected or all monsters gone).
      */
     void checkLevelDone() {
-        if ((dig.countEmeralds() == 0 || dig.monster.getMonstersLeft() == 0) && dig.digonscr)
+        if ((dig.countEmeralds() == 0 || dig.monster.getMonstersLeft() == 0) && dig.digOnScreen)
             gameData[currentPlayer].levelDone = true;
         else
             gameData[currentPlayer].levelDone = false;
@@ -217,12 +216,10 @@ class Main {
         dig.scores.loadScores();
         dig.sound.initSound();
 
-        dig.scores.run();
-
         numPlayers = 1;
         do {
             dig.sound.soundStop();
-            dig.sprite.setsprorder(digSprOrder);
+            dig.sprite.setSpriteOrder(digSprOrder);
             dig.drawing.createAllSprites();
             dig.input.detectJoystick();
             dig.display.clearScreen();
@@ -237,19 +234,19 @@ class Main {
 
             while (!start) {
                 start = dig.input.testStart();
-                if (dig.input.keypressed != 0) {
-                    if (dig.input.keypressed == KeyEvent.VK_ESCAPE) {
+                if (dig.input.lastKeyCode != 0) {
+                    if (dig.input.lastKeyCode == KeyEvent.VK_ESCAPE) {
                         switchPlayerCount();
                         showPlayers();
                     }
-                    dig.input.akeypressed = 0;
-                    dig.input.keypressed = 0;
+                    dig.input.lastAsciiKeyCode = 0;
+                    dig.input.lastKeyCode = 0;
                 }
                 if (frame == 0)
                     for (t = 54; t < 174; t += 12)
                         dig.drawing.drawText("            ", 164, t, 0);
                 if (frame == 50) {
-                    dig.sprite.movedrawspr(8, 292, 63);
+                    dig.sprite.moveDrawSprite(8, 292, 63);
                     x = 292;
                 }
                 if (frame > 50 && frame <= 77) {
@@ -261,7 +258,7 @@ class Main {
                 if (frame == 83)
                     dig.drawing.drawText("NOBBIN", 216, 64, 2);
                 if (frame == 90) {
-                    dig.sprite.movedrawspr(9, 292, 82);
+                    dig.sprite.moveDrawSprite(9, 292, 82);
                     dig.drawing.drawMonster(1, false, 4, 292, 82);
                     x = 292;
                 }
@@ -274,7 +271,7 @@ class Main {
                 if (frame == 123)
                     dig.drawing.drawText("HOBBIN", 216, 83, 2);
                 if (frame == 130) {
-                    dig.sprite.movedrawspr(0, 292, 101);
+                    dig.sprite.moveDrawSprite(0, 292, 101);
                     dig.drawing.drawDigger(4, 292, 101, true);
                     x = 292;
                 }
@@ -287,7 +284,7 @@ class Main {
                 if (frame == 163)
                     dig.drawing.drawText("DIGGER", 216, 102, 2);
                 if (frame == 178) {
-                    dig.sprite.movedrawspr(1, 184, 120);
+                    dig.sprite.moveDrawSprite(1, 184, 120);
                     dig.drawing.drawGold(1, 0, 184, 120);
                 }
                 if (frame == 183)
@@ -310,8 +307,8 @@ class Main {
             }
             // Clear residual key state so spacebar at title screen
             // doesn't immediately trigger pause in gameplay
-            dig.input.akeypressed = 0;
-            dig.input.keypressed = 0;
+            dig.input.lastAsciiKeyCode = 0;
+            dig.input.lastKeyCode = 0;
 
             gameData[0].level = 1;
             gameData[0].lives = 3;
@@ -326,7 +323,7 @@ class Main {
             currentPlayer = 1;
             initLevel();
             dig.scores.zeroScores();
-            dig.bonusvisible = true;
+            dig.bonusVisible = true;
             if (numPlayers == 2)
                 flashPlayer = true;
             currentPlayer = 0;
@@ -372,7 +369,7 @@ class Main {
             }
         } else
             initChars();
-        dig.input.keypressed = 0;
+        dig.input.lastKeyCode = 0;
         dig.drawing.drawText("        ", 108, 0, 3);
         dig.scores.initScores();
         dig.drawing.drawLives();
@@ -455,17 +452,17 @@ class Main {
     }
 
     void testPause() {
-        if (dig.input.akeypressed == 32) { // Space bar
-            dig.input.akeypressed = 0;
+        if (dig.input.lastAsciiKeyCode == 32) { // Space bar
+            dig.input.lastAsciiKeyCode = 0;
             dig.sound.soundPause();
             dig.sound.setT2Val(40);
             dig.sound.setSoundT2();
             clearTopLine();
             dig.drawing.drawText("PAUSED", 124, 0, 1);
             dig.newFrame();
-            dig.input.keypressed = 0;
+            dig.input.lastKeyCode = 0;
             boolean interrupted = false;
-            while (dig.input.keypressed == 0 && !interrupted) {
+            while (dig.input.lastKeyCode == 0 && !interrupted) {
                 try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
@@ -479,7 +476,7 @@ class Main {
             dig.drawing.drawLives();
             dig.newFrame();
             dig.time = dig.display.getCurrentTimeMillis() - dig.frametime;
-            dig.input.keypressed = 0;
+            dig.input.lastKeyCode = 0;
         } else
             dig.sound.soundPauseOff();
     }

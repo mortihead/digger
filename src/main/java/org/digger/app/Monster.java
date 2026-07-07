@@ -63,7 +63,7 @@ class Monster {
                 nextMonster++;
                 nextMonTime = monGapTime;
                 mondat[i].spawnTime = 5;
-                dig.sprite.movedrawspr(i + 8, mondat[i].x, mondat[i].y);
+                dig.sprite.moveDrawSprite(i + 8, mondat[i].x, mondat[i].y);
                 break;
             }
     }
@@ -73,11 +73,11 @@ class Monster {
         if (nextMonTime > 0)
             nextMonTime--;
         else {
-            if (nextMonster < totalMonsters && getMonstersOnScreenCount() < maxMonOnScreen && dig.digonscr &&
-                    !dig.bonusmode)
+            if (nextMonster < totalMonsters && getMonstersOnScreenCount() < maxMonOnScreen && dig.digOnScreen &&
+                    !dig.bonusMode)
                 createMonster();
             if (unbonusFlag && nextMonster == totalMonsters && nextMonTime == 0)
-                if (dig.digonscr) {
+                if (dig.digOnScreen) {
                     unbonusFlag = false;
                     dig.createbonus();
                 }
@@ -105,7 +105,7 @@ class Monster {
     void eraseMonsters() {
         for (int i = 0; i < MAX_MONSTERS; i++)
             if (mondat[i].flag)
-                dig.sprite.erasespr(i + 8);
+                dig.sprite.eraseSprite(i + 8);
     }
 
     /** Checks if a monster can move in the given direction from cell (x, y). */
@@ -182,8 +182,8 @@ class Monster {
     void killMonster(int mon) {
         if (mondat[mon].flag) {
             mondat[mon].flag = mondat[mon].alive = false;
-            dig.sprite.erasespr(mon + 8);
-            if (dig.bonusmode)
+            dig.sprite.eraseSprite(mon + 8);
+            if (dig.bonusMode)
                 totalMonsters++;
         }
     }
@@ -228,7 +228,7 @@ class Monster {
             }
 
             // In bonus mode, run away from digger
-            if (dig.bonusmode) {
+            if (dig.bonusMode) {
                 t = mdirp1; mdirp1 = mdirp4; mdirp4 = t;
                 t = mdirp2; mdirp2 = mdirp3; mdirp3 = t;
             }
@@ -311,7 +311,7 @@ class Monster {
                     (mondat[mon].x - 12) % 20, (mondat[mon].y - 18) % 18, mondat[mon].direction);
 
         // If digger's gone, don't move
-        if (!dig.digonscr) {
+        if (!dig.digOnScreen) {
             mondat[mon].x = monox;
             mondat[mon].y = monoy;
         }
@@ -355,7 +355,7 @@ class Monster {
         }
 
         // Increase hobbin cross counter
-        if (mondat[mon].nob && ((clbits & 0x3f00) != 0) && dig.digonscr)
+        if (mondat[mon].nob && ((clbits & 0x3f00) != 0) && dig.digOnScreen)
             mondat[mon].huntTime++;
 
         // Bags push monster back
@@ -371,8 +371,8 @@ class Monster {
         }
 
         // Collision with digger
-        if (((clbits & 1) != 0) && dig.digonscr)
-            if (dig.bonusmode) {
+        if (((clbits & 1) != 0) && dig.digOnScreen)
+            if (dig.bonusMode) {
                 killMonster(mon);
                 dig.scores.scoreEatMonster();
                 dig.sound.soundEatm();

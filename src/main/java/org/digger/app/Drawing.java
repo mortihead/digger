@@ -90,28 +90,28 @@ class Drawing {
         digSpriteDir = 1;
         digSpriteFrame = 0;
         fireSpriteFrame = 0;
-        dig.sprite.createspr(0, 0, diggerBuf, 4, 15, 0, 0);
-        dig.sprite.createspr(14, 81, bonusBuf, 4, 15, 0, 0);
-        dig.sprite.createspr(15, 82, fireBuf, 2, fireHeight, 0, 0);
+        dig.sprite.createSprite(0, 0, diggerBuf, 4, 15, 0, 0);
+        dig.sprite.createSprite(14, 81, bonusBuf, 4, 15, 0, 0);
+        dig.sprite.createSprite(15, 82, fireBuf, 2, fireHeight, 0, 0);
     }
 
     /**
      * Creates all sprite buffers: bags, monsters, digger, bonus, fire.
      */
     void createAllSprites() {
-        dig.sprite.createspr(1, 62, bagBuf1, 4, 15, 0, 0);
-        dig.sprite.createspr(2, 62, bagBuf2, 4, 15, 0, 0);
-        dig.sprite.createspr(3, 62, bagBuf3, 4, 15, 0, 0);
-        dig.sprite.createspr(4, 62, bagBuf4, 4, 15, 0, 0);
-        dig.sprite.createspr(5, 62, bagBuf5, 4, 15, 0, 0);
-        dig.sprite.createspr(6, 62, bagBuf6, 4, 15, 0, 0);
-        dig.sprite.createspr(7, 62, bagBuf7, 4, 15, 0, 0);
-        dig.sprite.createspr(8, 71, monBuf1, 4, 15, 0, 0);
-        dig.sprite.createspr(9, 71, monBuf2, 4, 15, 0, 0);
-        dig.sprite.createspr(10, 71, monBuf3, 4, 15, 0, 0);
-        dig.sprite.createspr(11, 71, monBuf4, 4, 15, 0, 0);
-        dig.sprite.createspr(12, 71, monBuf5, 4, 15, 0, 0);
-        dig.sprite.createspr(13, 71, monBuf6, 4, 15, 0, 0);
+        dig.sprite.createSprite(1, 62, bagBuf1, 4, 15, 0, 0);
+        dig.sprite.createSprite(2, 62, bagBuf2, 4, 15, 0, 0);
+        dig.sprite.createSprite(3, 62, bagBuf3, 4, 15, 0, 0);
+        dig.sprite.createSprite(4, 62, bagBuf4, 4, 15, 0, 0);
+        dig.sprite.createSprite(5, 62, bagBuf5, 4, 15, 0, 0);
+        dig.sprite.createSprite(6, 62, bagBuf6, 4, 15, 0, 0);
+        dig.sprite.createSprite(7, 62, bagBuf7, 4, 15, 0, 0);
+        dig.sprite.createSprite(8, 71, monBuf1, 4, 15, 0, 0);
+        dig.sprite.createSprite(9, 71, monBuf2, 4, 15, 0, 0);
+        dig.sprite.createSprite(10, 71, monBuf3, 4, 15, 0, 0);
+        dig.sprite.createSprite(11, 71, monBuf4, 4, 15, 0, 0);
+        dig.sprite.createSprite(12, 71, monBuf5, 4, 15, 0, 0);
+        dig.sprite.createSprite(13, 71, monBuf6, 4, 15, 0, 0);
         createDiggerBonusFireSprites();
         for (int i = 0; i < 6; i++) {
             monSpriteFrame[i] = 0;
@@ -127,24 +127,24 @@ class Drawing {
     void drawBackground(int levelPlan) {
         for (int y = 14; y < 200; y += 4)
             for (int x = 0; x < 320; x += 20)
-                dig.sprite.drawmiscspr(x, y, 93 + levelPlan, 5, 4);
+                dig.sprite.drawMiscSprite(x, y, 93 + levelPlan, 5, 4);
     }
 
     /**
      * Draws the bonus cherry at the given position.
      */
     void drawBonus(int x, int y) {
-        dig.sprite.initspr(14, 81, 4, 15, 0, 0);
-        dig.sprite.movedrawspr(14, x, y);
+        dig.sprite.initSprite(14, 81, 4, 15, 0, 0);
+        dig.sprite.moveDrawSprite(14, x, y);
     }
 
     /**
      * Draws the bottom tunnel edge blob (below a cell).
      */
     void drawTunnelEdgeBottom(int x, int y) {
-        dig.sprite.initmiscspr(x - 4, y + 15, 6, 6);
-        dig.sprite.drawmiscspr(x - 4, y + 15, 105, 6, 6);
-        dig.sprite.getis();
+        dig.sprite.initMiscSprite(x - 4, y + 15, 6, 6);
+        dig.sprite.drawMiscSprite(x - 4, y + 15, 105, 6, 6);
+        dig.sprite.captureAndDrawSprites();
     }
 
     /**
@@ -162,12 +162,12 @@ class Drawing {
             digSpriteDir = -digSpriteDir;
         digSpriteFrame = Math.max(0, Math.min(2, digSpriteFrame));
         if (frame >= 0 && frame <= 6 && !((frame & 1) != 0)) {
-            dig.sprite.initspr(0, (frame + (right ? 0 : 1)) * 3 + digSpriteFrame + 1, 4, 15, 0, 0);
-            return dig.sprite.drawspr(0, x, y);
+            dig.sprite.initSprite(0, (frame + (right ? 0 : 1)) * 3 + digSpriteFrame + 1, 4, 15, 0, 0);
+            return dig.sprite.redrawSprite(0, x, y);
         }
         if (frame >= 10 && frame <= 15) {
-            dig.sprite.initspr(0, 40 - frame, 4, 15, 0, 0);
-            return dig.sprite.drawspr(0, x, y);
+            dig.sprite.initSprite(0, 40 - frame, 4, 15, 0, 0);
+            return dig.sprite.redrawSprite(0, x, y);
         }
         return 0;
     }
@@ -176,9 +176,9 @@ class Drawing {
      * Draws a single emerald at the given pixel position.
      */
     void drawEmerald(int x, int y) {
-        dig.sprite.initmiscspr(x, y, 4, 10);
-        dig.sprite.drawmiscspr(x, y, 108, 4, 10);
-        dig.sprite.getis();
+        dig.sprite.initMiscSprite(x, y, 4, 10);
+        dig.sprite.drawMiscSprite(x, y, 108, 4, 10);
+        dig.sprite.captureAndDrawSprites();
     }
 
     /**
@@ -231,19 +231,19 @@ class Drawing {
             fireSpriteFrame++;
             if (fireSpriteFrame > 2)
                 fireSpriteFrame = 0;
-            dig.sprite.initspr(15, 82 + fireSpriteFrame, 2, fireHeight, 0, 0);
+            dig.sprite.initSprite(15, 82 + fireSpriteFrame, 2, fireHeight, 0, 0);
         } else
-            dig.sprite.initspr(15, 84 + frame, 2, fireHeight, 0, 0);
-        return dig.sprite.drawspr(15, x, y);
+            dig.sprite.initSprite(15, 84 + frame, 2, fireHeight, 0, 0);
+        return dig.sprite.redrawSprite(15, x, y);
     }
 
     /**
      * Draws falling dirt debris below a bag breaking through ground.
      */
     void drawBagFallDebris(int x, int y) {
-        dig.sprite.initmiscspr(x - 4, y + 15, 6, 8);
-        dig.sprite.drawmiscspr(x - 4, y + 15, 107, 6, 8);
-        dig.sprite.getis();
+        dig.sprite.initMiscSprite(x - 4, y + 15, 6, 8);
+        dig.sprite.drawMiscSprite(x - 4, y + 15, 107, 6, 8);
+        dig.sprite.captureAndDrawSprites();
     }
 
     /**
@@ -254,24 +254,24 @@ class Drawing {
      * @return collision bitmask
      */
     int drawGold(int spriteIndex, int frame, int x, int y) {
-        dig.sprite.initspr(spriteIndex, frame + 62, 4, 15, 0, 0);
-        return dig.sprite.drawspr(spriteIndex, x, y);
+        dig.sprite.initSprite(spriteIndex, frame + 62, 4, 15, 0, 0);
+        return dig.sprite.redrawSprite(spriteIndex, x, y);
     }
 
     /**
      * Draws the left tunnel edge blob (boundary to the right of a cell).
      */
     void drawTunnelEdgeLeft(int x, int y) {
-        dig.sprite.initmiscspr(x - 8, y - 1, 2, 18);
-        dig.sprite.drawmiscspr(x - 8, y - 1, 104, 2, 18);
-        dig.sprite.getis();
+        dig.sprite.initMiscSprite(x - 8, y - 1, 2, 18);
+        dig.sprite.drawMiscSprite(x - 8, y - 1, 104, 2, 18);
+        dig.sprite.captureAndDrawSprites();
     }
 
     /**
      * Draws a single life indicator icon.
      */
     void drawLife(int type, int x, int y) {
-        dig.sprite.drawmiscspr(x, y, type + 110, 4, 12);
+        dig.sprite.drawMiscSprite(x, y, type + 110, 4, 12);
     }
 
     /**
@@ -307,16 +307,16 @@ class Drawing {
             monSpriteDir[index] = -monSpriteDir[index];
         monSpriteFrame[index] = Math.max(0, Math.min(2, monSpriteFrame[index]));
         if (isNobbin)
-            dig.sprite.initspr(index + 8, monSpriteFrame[index] + 69, 4, 15, 0, 0);
+            dig.sprite.initSprite(index + 8, monSpriteFrame[index] + 69, 4, 15, 0, 0);
         else
             switch (direction) {
                 case 0:
-                    dig.sprite.initspr(index + 8, monSpriteFrame[index] + 73, 4, 15, 0, 0);
+                    dig.sprite.initSprite(index + 8, monSpriteFrame[index] + 73, 4, 15, 0, 0);
                     break;
                 case 4:
-                    dig.sprite.initspr(index + 8, monSpriteFrame[index] + 77, 4, 15, 0, 0);
+                    dig.sprite.initSprite(index + 8, monSpriteFrame[index] + 77, 4, 15, 0, 0);
             }
-        return dig.sprite.drawspr(index + 8, x, y);
+        return dig.sprite.redrawSprite(index + 8, x, y);
     }
 
     /**
@@ -329,34 +329,34 @@ class Drawing {
      */
     int drawMonsterDeath(int index, boolean isNobbin, int direction, int x, int y) {
         if (isNobbin)
-            dig.sprite.initspr(index + 8, 72, 4, 15, 0, 0);
+            dig.sprite.initSprite(index + 8, 72, 4, 15, 0, 0);
         else
             switch (direction) {
                 case 0:
-                    dig.sprite.initspr(index + 8, 76, 4, 15, 0, 0);
+                    dig.sprite.initSprite(index + 8, 76, 4, 15, 0, 0);
                     break;
                 case 4:
-                    dig.sprite.initspr(index + 8, 80, 4, 14, 0, 0);
+                    dig.sprite.initSprite(index + 8, 80, 4, 14, 0, 0);
             }
-        return dig.sprite.drawspr(index + 8, x, y);
+        return dig.sprite.redrawSprite(index + 8, x, y);
     }
 
     /**
      * Draws the right tunnel edge blob (boundary to the left of a cell).
      */
     void drawTunnelEdgeRight(int x, int y) {
-        dig.sprite.initmiscspr(x + 16, y - 1, 2, 18);
-        dig.sprite.drawmiscspr(x + 16, y - 1, 102, 2, 18);
-        dig.sprite.getis();
+        dig.sprite.initMiscSprite(x + 16, y - 1, 2, 18);
+        dig.sprite.drawMiscSprite(x + 16, y - 1, 102, 2, 18);
+        dig.sprite.captureAndDrawSprites();
     }
 
     /**
      * Draws a ground crack sprite below a wobbling bag about to fall.
      */
     void drawBagGroundCrack(int x, int y) {
-        dig.sprite.initmiscspr(x - 4, y + 17, 6, 6);
-        dig.sprite.drawmiscspr(x - 4, y + 17, 106, 6, 6);
-        dig.sprite.getis();
+        dig.sprite.initMiscSprite(x - 4, y + 17, 6, 6);
+        dig.sprite.drawMiscSprite(x - 4, y + 17, 106, 6, 6);
+        dig.sprite.captureAndDrawSprites();
     }
 
     /**
@@ -381,9 +381,9 @@ class Drawing {
      * Draws the top tunnel edge blob (above a cell).
      */
     void drawTunnelEdgeTop(int x, int y) {
-        dig.sprite.initmiscspr(x - 4, y - 6, 6, 6);
-        dig.sprite.drawmiscspr(x - 4, y - 6, 103, 6, 6);
-        dig.sprite.getis();
+        dig.sprite.initMiscSprite(x - 4, y - 6, 6, 6);
+        dig.sprite.drawMiscSprite(x - 4, y - 6, 103, 6, 6);
+        dig.sprite.captureAndDrawSprites();
     }
 
     /**
@@ -441,9 +441,9 @@ class Drawing {
      * Erases an emerald from the field (draws background over it).
      */
     void eraseEmerald(int x, int y) {
-        dig.sprite.initmiscspr(x, y, 4, 10);
-        dig.sprite.drawmiscspr(x, y, 109, 4, 10);
-        dig.sprite.getis();
+        dig.sprite.initMiscSprite(x, y, 4, 10);
+        dig.sprite.drawMiscSprite(x, y, 109, 4, 10);
+        dig.sprite.captureAndDrawSprites();
     }
 
     /**
@@ -453,28 +453,28 @@ class Drawing {
         digSpriteDir = 1;
         digSpriteFrame = 0;
         fireSpriteFrame = 0;
-        dig.sprite.initspr(0, 0, 4, 15, 0, 0);
-        dig.sprite.initspr(14, 81, 4, 15, 0, 0);
-        dig.sprite.initspr(15, 82, 2, fireHeight, 0, 0);
+        dig.sprite.initSprite(0, 0, 4, 15, 0, 0);
+        dig.sprite.initSprite(14, 81, 4, 15, 0, 0);
+        dig.sprite.initSprite(15, 82, 2, fireHeight, 0, 0);
     }
 
     /**
      * Re-initializes all sprites (bags, monsters, digger, bonus, fire).
      */
     void initAllSprites() {
-        dig.sprite.initspr(1, 62, 4, 15, 0, 0);
-        dig.sprite.initspr(2, 62, 4, 15, 0, 0);
-        dig.sprite.initspr(3, 62, 4, 15, 0, 0);
-        dig.sprite.initspr(4, 62, 4, 15, 0, 0);
-        dig.sprite.initspr(5, 62, 4, 15, 0, 0);
-        dig.sprite.initspr(6, 62, 4, 15, 0, 0);
-        dig.sprite.initspr(7, 62, 4, 15, 0, 0);
-        dig.sprite.initspr(8, 71, 4, 15, 0, 0);
-        dig.sprite.initspr(9, 71, 4, 15, 0, 0);
-        dig.sprite.initspr(10, 71, 4, 15, 0, 0);
-        dig.sprite.initspr(11, 71, 4, 15, 0, 0);
-        dig.sprite.initspr(12, 71, 4, 15, 0, 0);
-        dig.sprite.initspr(13, 71, 4, 15, 0, 0);
+        dig.sprite.initSprite(1, 62, 4, 15, 0, 0);
+        dig.sprite.initSprite(2, 62, 4, 15, 0, 0);
+        dig.sprite.initSprite(3, 62, 4, 15, 0, 0);
+        dig.sprite.initSprite(4, 62, 4, 15, 0, 0);
+        dig.sprite.initSprite(5, 62, 4, 15, 0, 0);
+        dig.sprite.initSprite(6, 62, 4, 15, 0, 0);
+        dig.sprite.initSprite(7, 62, 4, 15, 0, 0);
+        dig.sprite.initSprite(8, 71, 4, 15, 0, 0);
+        dig.sprite.initSprite(9, 71, 4, 15, 0, 0);
+        dig.sprite.initSprite(10, 71, 4, 15, 0, 0);
+        dig.sprite.initSprite(11, 71, 4, 15, 0, 0);
+        dig.sprite.initSprite(12, 71, 4, 15, 0, 0);
+        dig.sprite.initSprite(13, 71, 4, 15, 0, 0);
         initDiggerBonusFireSprites();
     }
 

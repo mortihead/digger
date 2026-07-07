@@ -69,7 +69,7 @@ class Bags {
                     bagdat[bpa].xr != 0 || bagdat[bpa].yr != 0 || bagdat[bpa].goldTime != 0 ||
                     bagdat[bpa].fallHeight != 0 || bagdat[bpa].wobbling)) {
                 bagdat[bpa].exist = false;
-                dig.sprite.erasespr(bpa);
+                dig.sprite.eraseSprite(bpa);
             }
             if (dig.main.getCurrentPlayer() == 0)
                 bagdat1[bpa].copyFrom(bagdat[bpa]);
@@ -127,7 +127,7 @@ class Bags {
             else
                 bagdat[bag].copyFrom(bagdat2[bag]);
             if (bagdat[bag].exist)
-                dig.sprite.movedrawspr(bag, bagdat[bag].x, bagdat[bag].y);
+                dig.sprite.moveDrawSprite(bag, bagdat[bag].x, bagdat[bag].y);
         }
     }
 
@@ -308,7 +308,7 @@ dig.drawing.digTunnel(x, y, dir);
     void removebag(int bag) {
         if (bagdat[bag].exist) {
             bagdat[bag].exist = false;
-            dig.sprite.erasespr(bag);
+            dig.sprite.eraseSprite(bag);
         }
     }
 

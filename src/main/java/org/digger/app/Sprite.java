@@ -103,7 +103,7 @@ class Sprite {
         return false;
     }
 
-    void createspr(int n, int ch, short[] mov, int wid, int hei, int bwid, int bhei) {
+    void createSprite(int n, int ch, short[] mov, int wid, int hei, int bwid, int bhei) {
         sprNewChar[n & 15] = sprChar[n & 15] = ch;
         sprBackground[n & 15] = mov;
         sprNewWidth[n & 15] = sprWidth[n & 15] = wid;
@@ -113,7 +113,7 @@ class Sprite {
         sprEnabled[n & 15] = false;
     }
 
-    void drawmiscspr(int x, int y, int ch, int wid, int hei) {
+    void drawMiscSprite(int x, int y, int ch, int wid, int hei) {
         sprX[16] = x & -4;
         sprY[16] = y;
         sprChar[16] = ch;
@@ -122,7 +122,7 @@ class Sprite {
         dig.display.drawSpriteMasked(sprX[16], sprY[16], sprChar[16], sprWidth[16], sprHeight[16]);
     }
 
-    int drawspr(int n, int x, int y) {
+    int redrawSprite(int n, int x, int y) {
         int bx, t1, t2, t3, t4;
         bx = n & 15;
         x &= -4;
@@ -156,23 +156,23 @@ class Sprite {
         return bcollides(bx);
     }
 
-    void erasespr(int n) {
+    void eraseSprite(int n) {
         int bx = n & 15;
-        dig.display.drawSprite(sprX[bx], sprY[bx], sprBackground[bx], sprWidth[bx], sprHeight[bx], true);
+        dig.display.drawSprite(sprX[bx], sprY[bx], sprBackground[bx], sprWidth[bx], sprHeight[bx]);
         sprEnabled[bx] = false;
         clearDrawFlags();
         setRedrawFlags(bx);
         drawMaskedSprites();
     }
 
-    void getis() {
+    void captureAndDrawSprites() {
         for (int i = 0; i < 16; i++)
             if (sprDrawFlag[i])
                 dig.display.readSpritePixels(sprX[i], sprY[i], sprBackground[i], sprWidth[i], sprHeight[i]);
         drawMaskedSprites();
     }
 
-    void initmiscspr(int x, int y, int wid, int hei) {
+    void initMiscSprite(int x, int y, int wid, int hei) {
         sprX[16] = x;
         sprY[16] = y;
         sprWidth[16] = wid;
@@ -182,7 +182,7 @@ class Sprite {
         restoreBackgrounds();
     }
 
-    void initspr(int n, int ch, int wid, int hei, int bwid, int bhei) {
+    void initSprite(int n, int ch, int wid, int hei, int bwid, int bhei) {
         sprNewChar[n & 15] = ch;
         sprNewWidth[n & 15] = wid;
         sprNewHeight[n & 15] = hei;
@@ -190,7 +190,7 @@ class Sprite {
         sprNewBHeight[n & 15] = bhei;
     }
 
-    int movedrawspr(int n, int x, int y) {
+    int moveDrawSprite(int n, int x, int y) {
         int bx = n & 15;
         sprX[bx] = x & -4;
         sprY[bx] = y;
@@ -253,7 +253,7 @@ class Sprite {
     }
 
 
-    void setsprorder(int[] newsprorder) {
+    void setSpriteOrder(int[] newsprorder) {
         if (newsprorder == null)
             sprOrder = defaultSprOrder;
         else
