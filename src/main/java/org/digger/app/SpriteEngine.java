@@ -7,7 +7,7 @@ package org.digger.app;
  * <p>Sprites 0-7 are bags, 8-13 are monsters, 14 is bonus, 15 is fire,
  * 0 is also the digger. Slot 16 is used as a temporary for misc sprites.
  */
-class Sprite {
+class SpriteEngine {
 
     Digger dig;
 
@@ -32,7 +32,7 @@ class Sprite {
     int[] defaultSprOrder = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
     int[] sprOrder = defaultSprOrder;
 
-    Sprite(Digger d) {
+    SpriteEngine(Digger d) {
         dig = d;
     }
 

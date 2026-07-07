@@ -36,7 +36,7 @@ public class Digger extends Frame implements Runnable {
     Sound sound;
     Monster monster;
     Scores scores;
-    Sprite sprite;
+    SpriteEngine sprite;
     Drawing drawing;
     Input input;
     CgaDisplay display;
@@ -76,7 +76,7 @@ public class Digger extends Frame implements Runnable {
         sound = new Sound(this);
         monster = new Monster(this);
         scores = new Scores(this);
-        sprite = new Sprite(this);
+        sprite = new SpriteEngine(this);
         drawing = new Drawing(this);
         input = new Input(this);
         display = new CgaDisplay(this);

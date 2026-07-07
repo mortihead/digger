@@ -146,11 +146,11 @@ class CgaDisplay {
      * Draws a masked sprite onto the screen. Transparent pixels (mask bits = 1)
      * are skipped, preserving the background.
      *
-     * @param ch index into {@link CgaGrafx#cgatable}: sprite at [ch*2], mask at [ch*2+1]
+     * @param ch index into {@link CgaGrafx#CGA_TABLE}: sprite at [ch*2], mask at [ch*2+1]
      */
     void drawSpriteMasked(int x, int y, int ch, int w, int h) {
-        short[] spr = CgaGrafx.cgatable[ch * 2];
-        short[] msk = CgaGrafx.cgatable[ch * 2 + 1];
+        short[] spr = CgaGrafx.CGA_TABLE[ch * 2];
+        short[] msk = CgaGrafx.CGA_TABLE[ch * 2 + 1];
         int src = 0;
         int dest = y * width + (x & 0xfffc);
         for (int i = 0; i < h; i++) {
@@ -185,14 +185,14 @@ class CgaDisplay {
     void drawTitleScreen() {
         int src = 0, dest = 0;
         while (true) {
-            if (src >= CgaGrafx.cgatitledat.length)
+            if (src >= CgaGrafx.CGA_TITLE_DATA.length)
                 break;
-            int b = CgaGrafx.cgatitledat[src++], l, c;
+            int b = CgaGrafx.CGA_TITLE_DATA[src++], l, c;
             if (b == 0xfe) {
-                l = CgaGrafx.cgatitledat[src++];
+                l = CgaGrafx.CGA_TITLE_DATA[src++];
                 if (l == 0)
                     l = 256;
-                c = CgaGrafx.cgatitledat[src++];
+                c = CgaGrafx.CGA_TITLE_DATA[src++];
             } else {
                 l = 1;
                 c = b;
